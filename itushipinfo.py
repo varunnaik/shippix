@@ -4,6 +4,9 @@ from itu_classifications import classifications
 import requests
 import re
 
+def sanitise(string):
+	return re.sub('\s+', ' ', string.strip().replace('&nbsp;', '').replace(':', ''))
+
 def get_ship_class(term):
     return terms[term]
 
@@ -36,24 +39,28 @@ def get_vessel_details(url):
         'url': url,
         'details': '',
         'size': '',
-        'notes': ''
+        'notes': '',
+        'callsign':''
     }
     r = requests.get(url)
     try:
-        details['name'] = re.findall('Ship Name(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0]
+    	details['callsign'] = sanitise(re.findall('Call Sign(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0])
     except IndexError: pass
     try:
-        details['flag'] = re.findall('Geo. Area(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0]
+        details['name'] = sanitise(re.findall('Ship Name(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0])
     except IndexError: pass
     try:
-        details['gross_tonnage'] = re.findall('Gross Tonnage(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0]
+        details['flag'] = sanitise(re.findall('Geo. Area(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0])
     except IndexError: pass
     try:
-        ship_class = re.findall('Ship class(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0]
+        details['gross_tonnage'] = sanitise(re.findall('Gross Tonnage(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0])
+    except IndexError: pass
+    try:
+        ship_class = sanitise(re.findall('Ship class(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0])
         details['details']=" / ".join(map(lambda x: classifications[x] if x in classifications else x, filter(lambda x: len(x) == 2 or len(x)==3, ship_class.split(' '))))
     except IndexError: pass    
     try:
-        persons = re.findall('Person Capacity(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0]
+        persons = sanitise(re.findall('Person Capacity(?:\<[^\>]*\>[:\s]*)*([^\<]*)', r.text)[0])
         if persons:
             details['notes'] = 'Person capacity: ' + persons
     except IndexError: pass
