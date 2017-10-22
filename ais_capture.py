@@ -14,13 +14,13 @@ import json
 import sys
 import sqlite3
 import datetime
+import requests
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 #logging.basicConfig(filename='ais-server.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 conn = sqlite3.connect('ais.db')
 c = conn.cursor()
-#c.execute('CREATE TABLE ais (date text, message text)')
 
 UDP_IP_ADDRESS = "127.0.0.1"
 UDP_PORT_NO = 10110
@@ -29,74 +29,104 @@ serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
 logging.debug("successful server intiation")
 
-def insertdata(data):
-	c.execute("INSERT INTO ais VALUES (%s, %s)", (datetime.datetime.utcnow().isoformat(), json.dumps(data)))
+mmsilookups_inflight = []
+
+def logais(ais):
+	c.execute("INSERT INTO ais VALUES (?, ?)", (datetime.datetime.utcnow().isoformat(), json.dumps(ais)))
+	conn.commit()
+
+def logtraffic(ais):
+	c.execute('INSERT INTO trafficlog VALUES (?, ?)', (datetime.datetime.utcnow().isoformat(), ais["mmsi"]))
 	conn.commit()
 
 
-while True:
+def shouldprocess(ais):
+	c.execute("SELECT * FROM mmsi WHERE mmsi = ?", (ais['mmsi'],))
 	try:
-	    data, addr = serverSock.recvfrom(1024)
-	    payload=data.split(",")
+		mmsi, ignored = c.fetchone()
+	except TypeError:
+		return true
+
+	return ignored == 0
+
+def get_info(mmsi):
+	r = requests.get('https://www.vesselfinder.com/vessels/shipsearch?term=%s'% (mmsi,))
+	print r
+
+def lookupmmsi(mmsi):
+	# Perform lookup then: 
+
+	c.execute("INSERT INTO mmsi VALUES (?,0)", (ais["mmsi"],))
+	conn.commit()
+
+
+
+while True:
+
+
+    data, addr = serverSock.recvfrom(1024)
+    payload=data.split(",")
+
+    messagecontainer = ""
+
+    pad = int(payload[-1].split('*')[0][-1])
+    msglength = int(payload[1])
+    msgpart = int(payload[2])
+
+    if msglength == 1:
+	    rawmessage = payload[5]
+	    decodedmessage = ais.decode(rawmessage,pad)
+
+	    logging.info("SUCCESS: decoded message -> %s", str(decodedmessage))
+	    print json.dumps(decodedmessage)
+	    print "--------------"
+	    logtraffic(decodedmessage)
+	    if shouldprocess(decodedmessage):
+	    	logais(decodedmessage)
 
 	    messagecontainer = ""
-
-	    pad = int(payload[-1].split('*')[0][-1])
-	    msglength = int(payload[1])
-	    msgpart = int(payload[2])
-
-	    if msglength == 1:
-		    rawmessage = payload[5]
-		    decodedmessage = ais.decode(rawmessage,pad)
-
-		    logging.info("SUCCESS: decoded message -> %s", str(decodedmessage))
-		    print json.dumps(decodedmessage)
-		    insertdata(decodedmessage)
-
-		    messagecontainer = ""
-	    
-	    else: 
-	    	msgcomplete = 0
-	    	messagecontainer += payload[5]
-	    	
-	    	while (msgcomplete == 0): 
-				data, addr = serverSock.recvfrom(1024)
-				payload=data.split(",")
-				rawmessage = payload[5]
-				msglength = int(payload[1])
-				msgpart = int(payload[2])
-
-				messagecontainer += rawmessage
-
-				logging.debug("incoming data -> %s", str(data))
-				logging.debug("message part -> %s", str(msgpart))
-				logging.debug("message length -> %s", str(msglength))
-				logging.debug("pad ->  %s", str(pad))
-				logging.debug("raw message -> %s", str(rawmessage))
-				logging.debug("messagecontainer -> %s", str(messagecontainer))
-
-				
-				if (msglength == msgpart):
-					pad = int(payload[-1].split('*')[0][-1])
-					
-					#remove escape from test udp
-					messagecontainer = messagecontainer.replace("\\","")
-
-					logging.debug("final pad ->  %s", str(pad))
-					logging.debug("final messagecontainer -> %s", str(messagecontainer))
-
-					decodedmessage = ais.decode(messagecontainer,pad)
-					
-					logging.info("SUCCESS: decoded multipart message -> %s", str(decodedmessage))
-					print json.dumps(decodedmessage)
-					insertdata(decodedmessage)
-
-					messagecontainer = ""
-					msgcomplete = 1
-
-	except:
-		logging.warning("failed to process message")
+    
+    else: 
+    	msgcomplete = 0
+    	messagecontainer += payload[5]
     	
+    	while (msgcomplete == 0): 
+			data, addr = serverSock.recvfrom(1024)
+			payload=data.split(",")
+			rawmessage = payload[5]
+			msglength = int(payload[1])
+			msgpart = int(payload[2])
+
+			messagecontainer += rawmessage
+
+			logging.debug("incoming data -> %s", str(data))
+			logging.debug("message part -> %s", str(msgpart))
+			logging.debug("message length -> %s", str(msglength))
+			logging.debug("pad ->  %s", str(pad))
+			logging.debug("raw message -> %s", str(rawmessage))
+			logging.debug("messagecontainer -> %s", str(messagecontainer))
+
+			
+			if (msglength == msgpart):
+				pad = int(payload[-1].split('*')[0][-1])
+				
+				#remove escape from test udp
+				messagecontainer = messagecontainer.replace("\\","")
+
+				logging.debug("final pad ->  %s", str(pad))
+				logging.debug("final messagecontainer -> %s", str(messagecontainer))
+
+				decodedmessage = ais.decode(messagecontainer,pad)
+				
+				logging.info("SUCCESS: decoded multipart message -> %s", str(decodedmessage))
+				print json.dumps(decodedmessage)
+				logtraffic(decodedmessage)
+				if shouldprocess(decodedmessage):
+					logais(decodedmessage)
+
+				messagecontainer = ""
+				msgcomplete = 1
+
 
 # Note code above implemented a strip of "\" from incoming messages given need to add escape when socat-ing on terminal; should be removed in prod
 # Example 2 part message
