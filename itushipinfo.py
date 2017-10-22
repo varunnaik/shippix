@@ -1,3 +1,4 @@
+# Given an mmsi, parse out the vessel's info from the ITU website
 # http://www.udxf.nl/ITU-ship-classifications.pdf
 
 from itu_classifications import classifications 
@@ -6,9 +7,6 @@ import re
 
 def sanitise(string):
 	return re.sub('\s+', ' ', string.strip().replace('&nbsp;', '').replace(':', ''))
-
-def get_ship_class(term):
-    return terms[term]
 
 def get_vessel_details_url(mmsi):
     # look up vessel name from the vessel's Mobile Maritime Subscriber Identifier (mmsi)

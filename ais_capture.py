@@ -30,8 +30,6 @@ serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
 logging.debug("successful server intiation")
 
-mmsilookups_inflight = []
-
 def logais(ais):
     c.execute("INSERT INTO ais VALUES (?, ?)", (datetime.datetime.utcnow().isoformat(), json.dumps(ais)))
     conn.commit()
@@ -48,12 +46,12 @@ def updatevessel(mmsi, ignored, identified, fullinfo):
     conn.commit()
 
 def shouldprocess(ais):
-    '''Return tuple (identified, ignored)'''
+    '''Return list [identified, ignored]'''
     c.execute("SELECT identified, ignored FROM vesselinfo WHERE mmsi = ?", (ais['mmsi'],))
     status = c.fetchone()
     if status == None:
-        return (False, False)
-    return status
+        return [False, False]
+    return map(bool, status)
 
 def identifyvessel(ais):
     shipinfo = itu_identify_vessel(ais)
@@ -77,9 +75,6 @@ while True:
         if msglength == 1:
             rawmessage = payload[5]
             decodedmessage = ais.decode(rawmessage,pad)
-
-            # logging.info("SUCCESS: decoded message -> %s", str(decodedmessage))
-            # print json.dumps(decodedmessage)
             
             logtraffic(decodedmessage)
             identified, ignored = shouldprocess(decodedmessage)
@@ -124,10 +119,9 @@ while True:
 
                     decodedmessage = ais.decode(messagecontainer,pad)
                     
-                    # logging.info("SUCCESS: decoded multipart message -> %s", str(decodedmessage))
-                    # print json.dumps(decodedmessage)
                     logtraffic(decodedmessage)
                     identified, ignored = shouldprocess(decodedmessage)
+                    logging.info(str(decodedmessage['mmsi']) + " ignored = " + str(ignored))
                     if not identified and not ignored:
                         identifyvessel(decodedmessage)
                     elif not ignored:
