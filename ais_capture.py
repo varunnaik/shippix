@@ -15,6 +15,7 @@ import sys
 import sqlite3
 import datetime
 import requests
+from itushipinfo import identify_ship
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 #logging.basicConfig(filename='ais-server.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -45,13 +46,13 @@ def shouldprocess(ais):
 	try:
 		mmsi, ignored = c.fetchone()
 	except TypeError:
-		return true
+		return True
 
 	return ignored == 0
 
 def get_info(mmsi):
-	r = requests.get('https://www.vesselfinder.com/vessels/shipsearch?term=%s'% (mmsi,))
-	print r
+	r = requests.get('http://www.vesselfinder.com/vessels/shipsearch?term=%s'% (mmsi,))
+	print r.text
 
 def lookupmmsi(mmsi):
 	# Perform lookup then: 
@@ -60,6 +61,9 @@ def lookupmmsi(mmsi):
 	conn.commit()
 
 
+
+
+get_vessel_details(246028000)
 
 while True:
 
@@ -83,6 +87,7 @@ while True:
 	    logtraffic(decodedmessage)
 	    if shouldprocess(decodedmessage):
 	    	logais(decodedmessage)
+	    	ship = identify_ship(decodedmessage)
 
 	    messagecontainer = ""
     
