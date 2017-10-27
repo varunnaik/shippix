@@ -16,6 +16,12 @@ import sqlite3
 import datetime
 import requests
 from itushipinfo import itu_identify_vessel
+from geofence import Geofence
+from capture import Capture
+
+geofence = Geofence()
+capture = Capture()
+capturesinprogress = {}
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 #logging.basicConfig(filename='ais-server.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -35,7 +41,7 @@ def logais(ais):
     conn.commit()
 
 def logtraffic(ais):
-    c.execute('INSERT INTO trafficlog VALUES (?, ?)', (datetime.datetime.utcnow().isoformat(), ais["mmsi"]))
+    c.execute('INSERT INTO trafficlog VALUES (?, ?, ?)', (datetime.datetime.utcnow().isoformat(), ais["mmsi"], json.dumps(ais)))
     conn.commit()
 
 def updatevessel(mmsi, ignored, identified, fullinfo):
@@ -60,6 +66,10 @@ def identifyvessel(ais):
     else:
         updatevessel(ais['mmsi'], ignored=True, identified=False, fullinfo=None)
 
+def ingeofence(ais):
+    if x not in ais or y not in ais: return False
+    return geofence(ais.x, ais.y)
+
 while True:
 
     try:
@@ -76,14 +86,21 @@ while True:
             rawmessage = payload[5]
             decodedmessage = ais.decode(rawmessage,pad)
             
-            logtraffic(decodedmessage)
             identified, ignored = shouldprocess(decodedmessage)
             logging.info(str(decodedmessage['mmsi']) + " ignored = " + str(ignored))
+
+            if decodedmessage['mmsi'] in capturesinprogress:
+                if not ingeofence(decodedmessage):
+                    capture.stop(decodedmessage)
+                    del capturesinprogress[decodedmessage['mmsi']]
+            elif ingeofence(decodedmessage):
+                logtraffic(decodedmessage)            
+                if not ignored:
+                    capture.add(decodedmessage)
+                    capturesinprogress[decodedmessage['mmsi']] = True
+
             if not identified and not ignored:
                 identifyvessel(decodedmessage)
-            elif not ignored:
-                # Process image
-                pass
 
             messagecontainer = ""
         
@@ -125,8 +142,9 @@ while True:
                     if not identified and not ignored:
                         identifyvessel(decodedmessage)
                     elif not ignored:
-                        # Process image
-                        pass
+                        if ingeofence(decodedmessage):
+                            # capture
+                            pass
 
                     messagecontainer = ""
                     msgcomplete = 1
@@ -134,14 +152,3 @@ while True:
         logging.error(sys.exc_info())
 
 
-
-# Note code above implemented a strip of "\" from incoming messages given need to add escape when socat-ing on terminal; should be removed in prod
-# Example 2 part message
-# echo "\!AIVDM,2,1,9,B,53nFBv01SJ<thHp6220H4heHTf2222222222221?50\:454o<\`9QSlUDp,0*09" | socat - UDP4-DATAGRAM:127.0.0.1:10110 && echo "\!AIVDM,2,2,9,B,888888888888880,2\*2E" | socat - UDP4-DATAGRAM:127.0.0.1:10110
-# Example 2 part + 1 part message
-#echo "\!AIVDM,2,1,9,B,53nFBv01SJ<thHp6220H4heHTf2222222222221?50\:454o<\`9QSlUDp,0*09" | socat - UDP4-DATAGRAM:127.0.0.1:10110 && echo "\!AIVDM,2,2,9,B,888888888888880,2*2E" | socat - UDP4-DATAGRAM:127.0.0.1:10110 && echo "\!AIVDM,1,1,,B,15MnnEPP0qJe?6dGBV1=2wvF2D4h,0*2AthHp6220H4heHTf2222222222221?50\:454o<\`9QSlUDp,0*09" | socat - UDP4-DATAGRAM:127.0.0.1:10110
-
-#example simple execution of ais.decode
-# print ais.decode("53nFBv01SJ<thHp6220H4heHTf2222222222221?50:454o<`9QSlUDp888888888888880",2)
-
-# Note: may need to trim "L" from IMO and MMSI in decoded messages
