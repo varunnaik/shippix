@@ -1,24 +1,37 @@
 # If a thread is not already running start one now
 # Capture images 
 # Terminate
-
+import picamera
 from threading import Timer
-timer = None
-def start_capture():
-	should_capture = True
-	timer = Timer(capture, 1)
-	timer.start()
-	pass
 
-def stop_capture():
-	should_capture = False
-	timer.cancel()
-	pass
+# https://www.raspberrypi.org/documentation/usage/camera/python/README.md
 
-def capture():
-	if not should_capture:
-		return
-	# Code to get a picture and save to disk
-	timer = Timer(capture, 1)
+class Capture:
+	def __init__(self):
+		self.camera = picamera.PiCamera()
+		self.activecaptures = {}
+
+	def start(code):
+		if code in self.captures: return False
+		self.activecaptures[code] = True
+		if not self.timer:
+			self.timer = Timer(self.capture_image, 1, [code])
+			self.timer.start()
+		self.capture_image(code)
+
+	def capture_image(code):
+		if not self.activecaptures[code]: # If this capture is finished
+			del self.activecaptures[code] # Then delete the capture
+			if len(self.activecaptures) == 0: # If this was the last active capture
+				self.timer.cancel()	# Then also delete the timer itself
+				self.timer = None
+		else:
+			camera.capture(code + ".jpg")
+
+	def stop(code):
+		if code in self.activecaptures:
+			self.activecaptures[code] = False
+ 
+
 
 
