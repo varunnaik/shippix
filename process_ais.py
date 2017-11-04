@@ -20,7 +20,7 @@ class Ais_Processor:
 
     def ingeofence(self, ais):
         if 'x' not in ais or 'y' not in ais: return False
-        return self.geofence.pointInFence(ais['x'], ais['y'])
+        return self.geofence.pointInFence(ais['y'], ais['x'])
 
     def process(self, ais):
         identified, ignored = shouldprocess(ais)
