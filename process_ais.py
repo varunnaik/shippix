@@ -24,11 +24,10 @@ class Ais_Processor:
 
     def process(self, ais):
         identified, ignored = shouldprocess(ais)
-        logging.info(str(ais['mmsi']) + " ignored = " + str(ignored))
+        console.log(str(ais['mmsi']) + " ignored = " + str(ignored))
 
-        if ais['mmsi'] in self.capturesinprogress:
-            if not self.ingeofence(ais):
-                logtraffic(ais)
+        if ais['mmsi'] in self.capturesinprogress: # If already capturing this vessel
+            if not self.ingeofence(ais): # If vessel has left the geofence                
                 self.capture.stop(self.capturesinprogress[ais['mmsi']])
                 del self.capturesinprogress[ais['mmsi']]
         elif self.ingeofence(ais):
