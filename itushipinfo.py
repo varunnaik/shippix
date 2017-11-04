@@ -6,7 +6,7 @@ import requests
 import re
 
 def sanitise(string):
-	return re.sub('\s+', ' ', string.strip().replace('&nbsp;', '').replace(':', ''))
+	return re.sub('\s+', ' ', string.replace('&nbsp;', '').replace(':', '')).strip()
 
 def get_vessel_details_url(mmsi):
     # look up vessel name from the vessel's Mobile Maritime Subscriber Identifier (mmsi)
