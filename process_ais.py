@@ -19,12 +19,12 @@ class Ais_Processor:
             updatevessel(ais['mmsi'], ignored=True, identified=False, fullinfo=None)
 
     def ingeofence(self, ais):
-        if x not in ais or y not in ais: return False
-        return geofence(ais.x, ais.y)
+        if 'x' not in ais or 'y' not in ais: return False
+        return self.geofence.pointInFence(ais['x'], ais['y'])
 
     def process(self, ais):
         identified, ignored = shouldprocess(ais)
-        console.log(str(ais['mmsi']) + " ignored = " + str(ignored))
+        print(str(ais['mmsi']) + " ignored = " + str(ignored))
 
         if ais['mmsi'] in self.capturesinprogress: # If already capturing this vessel
             if not self.ingeofence(ais): # If vessel has left the geofence                
