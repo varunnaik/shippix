@@ -14,7 +14,7 @@ bucket = storage.bucket()
 db = firestore.Client()
 
 def add_document(trafficdata):
-    doc_ref = db.collection(u'traffic').document(str(trafficdata['mmsi'])+datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%m"))
+    doc_ref = db.collection(u'traffic').document(str(trafficdata['mmsi'])+datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%M"))
     doc_ref.set(trafficdata)
     print "Uploaded to firebase"
 
