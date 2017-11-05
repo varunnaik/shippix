@@ -20,7 +20,7 @@ class Capture:
         self.captureimages[code] = []
         self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None }
         self.activecaptures[code]['timer'] = Timer(self.capture_image, 1, [code])
-        self.timer.start()
+        self.activecaptures[code]['timer'].start()
         self.capture_image(code)
 
     def capture_image(self, code):
