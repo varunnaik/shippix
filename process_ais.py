@@ -5,6 +5,8 @@ from capture import Capture
 import datetime
 import requests
 
+currently_inside_fence = {}
+
 class Ais_Processor:
     def __init__(self):
         self.geofence = Geofence()
@@ -31,11 +33,16 @@ class Ais_Processor:
                 self.capture.stop(self.capturesinprogress[ais["mmsi"]])
                 del self.capturesinprogress[ais["mmsi"]]
         elif self.ingeofence(ais):
-            logtraffic(ais)            
+            if ais["mmsi"] not in currently_inside_fence:
+                logtraffic(ais)
+                currently_inside_fence[ais["mmsi"]] = True # Log once only when a ship enters the geofence
             if not ignored:
-            	captureid = str(ais["mmsi"]) + n.strftime("%Y%m%d")
+                captureid = str(ais["mmsi"]) + n.strftime("%Y%m%d")
                 self.capture.add(captureid)
                 self.capturesinprogress[ais["mmsi"]] = captureid
+        else:
+            if ais["mmsi"] in currently_inside_fence: # When a ship leaves the fenced region mark it as outside
+                del currently_inside_fence[ais["mmsi"]]
 
         if not identified and not ignored:
-            self.identifyvessel(ais)
+            self.identifyvessel(ais) # Note: Synchronous call!
