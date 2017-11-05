@@ -1,5 +1,6 @@
 import sqlite3
 import datetime
+import json
 
 conn = sqlite3.connect("ais.db")
 c = conn.cursor()
