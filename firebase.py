@@ -1,19 +1,3 @@
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import db
-from os.path import basename
-
-cred = credentials.Certificate("/home/pi/shippix/credentials.json")
-firebase_admin.initialize_app(cred)
-
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://sydneyharbourtraffic.firebaseio.com'
-})
-
-ref = db.reference('server/saving-data/fireblog')
-
-
-
 from google.cloud import firestore
 import datetime
 import firebase_admin
