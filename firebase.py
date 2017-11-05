@@ -16,6 +16,7 @@ db = firestore.Client()
 def add_document(trafficdata):
     doc_ref = db.collection(u'traffic').document(str(trafficdata['mmsi'])+datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%m"))
     doc_ref.set(trafficdata)
+    print "Uploaded to firebase"
 
 def upload_images(images):
     urls = []
@@ -24,6 +25,7 @@ def upload_images(images):
         with open(image, 'rb') as image_file:
             blob.upload_from_file(image_file)
         urls.append(blob.public_url)
+    print "Uploaded images to GCS"
 
     return urls
 

@@ -15,7 +15,7 @@ class Capture:
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
         	return False
-
+        print "Start capture"
         self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0 }
         self.captureimages[code] = []
         # Note: All captures will have the same code...
@@ -37,6 +37,7 @@ class Capture:
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
             self.camera.capture(filename)
             self.captureimages[code].append(filename)
+            print "Capture", self.activecaptures[code]['seq']
 
     def stop(self, code):
     	'''Stop capture'''

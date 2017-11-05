@@ -46,7 +46,7 @@ class Ais_Processor:
             if ais["mmsi"] not in currently_inside_fence:
                 logtraffic(ais)
                 currently_inside_fence[ais["mmsi"]] = {'date': datetime.datetime.utcnow().isoformat(), 'mmsi': ais['mmsi'], 'ais': ais} # Log once only when a ship enters the geofence
-                # Upload to firebase
+                firebase.add_document(currently_inside_fence[ais["mmsi"]])
             if not ignored:
                 n = datetime.datetime.now()
                 captureid = str(ais["mmsi"]) + n.strftime("%Y%m%d")
@@ -54,7 +54,6 @@ class Ais_Processor:
                 self.capturesinprogress[ais["mmsi"]] = captureid
         else:
             if ais["mmsi"] in currently_inside_fence: # When a ship leaves the fenced region mark it as outside
-                firebase.add_document(currently_inside_fence[ais["mmsi"]])
                 del currently_inside_fence[ais["mmsi"]]                
 
         if not identified and not ignored:
