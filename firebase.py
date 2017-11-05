@@ -1,6 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
+from os.path import basename
 
 cred = credentials.Certificate("/home/pi/shippix/credentials.json")
 firebase_admin.initialize_app(cred)
@@ -32,12 +33,15 @@ def add_document(trafficdata):
     doc_ref = db.collection(u'traffic').document(str(trafficdata['mmsi'])+datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%m"))
     doc_ref.set(trafficdata)
 
-def upload_images([images]):
+def upload_images(images):
     urls = []
     for image in images:
-        blob = bucket.blob(image)
+        blob = bucket.blob(basename(image))
         with open(image, 'rb') as image_file:
             blob.upload_from_file(image_file)
         urls.append(blob.public_url)
 
     return urls
+
+def sync_shipinfo():
+	pass
