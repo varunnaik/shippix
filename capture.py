@@ -34,6 +34,8 @@ class Capture:
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
             self.camera.capture(filename)
             self.captureimages[code].append(filename)
+            self.activecaptures[code]['timer'] = Timer(self.capture_image, 1, [code])
+            self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
 
     def stop(self, code):
