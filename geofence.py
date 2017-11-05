@@ -10,7 +10,7 @@ class Geofence:
     def __init__(self, geofence=default_geofence_sydney_harbour):
         self.poly = geofence
 
-    def pointInFence(self, x, y):
+    def point_in_fence(self, x, y):
         verticeCount = len(self.poly)
         i = 0
         j = verticeCount - 1

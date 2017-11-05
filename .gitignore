@@ -2,3 +2,4 @@ libs/
 ais.db
 ais.db.backup
 *.pyc
+credentials.json

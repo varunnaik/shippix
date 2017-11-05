@@ -4,6 +4,7 @@ from geofence import Geofence
 from capture import Capture
 import datetime
 import requests
+import firebase
 
 currently_inside_fence = {}
 
@@ -22,7 +23,13 @@ class Ais_Processor:
 
     def ingeofence(self, ais):
         if "x" not in ais or "y" not in ais: return False
-        return self.geofence.pointInFence(ais["y"], ais["x"])
+        return self.geofence.point_in_fence(ais["y"], ais["x"])
+
+    def update_firebase(capturedata, imagelist):
+    	urls = firebase.upload_images(imagelist)
+    	capturedata["urls"] = urls
+    	firebase.add_document(capturedata)
+    	# TODO: Delete imagelist
 
     def process(self, ais):
         identified, ignored = shouldprocess(ais)
@@ -31,18 +38,24 @@ class Ais_Processor:
         if ais["mmsi"] in self.capturesinprogress: # If already capturing this vessel
             if not self.ingeofence(ais): # If vessel has left the geofence                
                 self.capture.stop(self.capturesinprogress[ais["mmsi"]])
+                images = self.capture.get_images(self.capturesinprogress[ais["mmsi"]])
+                self.update_firebase(currently_inside_fence[ais["mmsi"]], images)
                 del self.capturesinprogress[ais["mmsi"]]
+                del currently_inside_fence[ais["mmsi"]]
         elif self.ingeofence(ais):
             if ais["mmsi"] not in currently_inside_fence:
                 logtraffic(ais)
-                currently_inside_fence[ais["mmsi"]] = True # Log once only when a ship enters the geofence
+                currently_inside_fence[ais["mmsi"]] = {'date': datetime.datetime.utcnow().isoformat(), 'ais': ais} # Log once only when a ship enters the geofence
+                # Upload to firebase
             if not ignored:
+                n = datetime.datetime.now()
                 captureid = str(ais["mmsi"]) + n.strftime("%Y%m%d")
                 self.capture.add(captureid)
                 self.capturesinprogress[ais["mmsi"]] = captureid
         else:
             if ais["mmsi"] in currently_inside_fence: # When a ship leaves the fenced region mark it as outside
-                del currently_inside_fence[ais["mmsi"]]
+                firebase.add_document(currently_inside_fence[ais["mmsi"]])
+                del currently_inside_fence[ais["mmsi"]]                
 
         if not identified and not ignored:
             self.identifyvessel(ais) # Note: Synchronous call!
