@@ -3,6 +3,7 @@ import datetime
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import storage
+from os.path import basename
 
 cred = credentials.Certificate("/home/pi/shippix/credentials.json")
 firebase_admin.initialize_app(cred, {
