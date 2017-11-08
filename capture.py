@@ -7,7 +7,11 @@ import datetime
 
 class Capture:
     def __init__(self):
-        self.camera = picamera.PiCamera() # TODO: Set CROP
+        self.camera = picamera.PiCamera()
+        self.camera.resolution=(1809, 1017)
+        self.camera.rotation=90
+        self.camera.sharpness=75
+        self.camera.zoom = (0.27, 0.41, 0.51, 0.55)
         self.activecaptures = {}
         self.captureimages = {}
 
@@ -19,7 +23,7 @@ class Capture:
         print "Start capture"
         self.captureimages[code] = []
         self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None }
-        self.activecaptures[code]['timer'] = Timer(1, self.capture_image, [code])
+        self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
         self.activecaptures[code]['timer'].start()
         self.capture_image(code)
 
@@ -32,9 +36,9 @@ class Capture:
         else:
             self.activecaptures[code]['seq'] += 1;
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
-            self.camera.capture(filename)
+            self.camera.capture(filename, resize=(1548, 470))
             self.captureimages[code].append(filename)
-            self.activecaptures[code]['timer'] = Timer(1, self.capture_image, [code])
+            self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
             self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
 

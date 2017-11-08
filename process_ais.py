@@ -46,7 +46,7 @@ class Ais_Processor:
             if ais["mmsi"] not in currently_inside_fence:
             	print str(ais["mmsi"]), " ignored:", str(ignored)
                 logtraffic(ais)
-                currently_inside_fence[ais["mmsi"]] = {'date': u''+datetime.datetime.utcnow().isoformat(), 'mmsi': ais['mmsi'], 'ais': ais} # Log once only when a ship enters the geofence
+                currently_inside_fence[ais["mmsi"]] = {'date': u''+datetime.datetime.utcnow().isoformat(), 'mmsi': ais['mmsi']} # Log once only when a ship enters the geofence
                 firebase.add_document(currently_inside_fence[ais["mmsi"]])
             if not ignored:
                 n = datetime.datetime.now()
