@@ -1,5 +1,6 @@
 import socket
 import ais.stream
+from ais import DecodeError
 import logging
 import json
 import sys
@@ -73,6 +74,8 @@ while True:
 
                     messagecontainer = ""
                     msgcomplete = 1
+    except DecodeError:
+        pass
     except:
         logging.error(sys.exc_info())
 

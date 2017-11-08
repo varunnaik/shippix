@@ -23,7 +23,7 @@ class Capture:
         print "Start capture"
         self.captureimages[code] = []
         self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None }
-        self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
+        self.activecaptures[code]['timer'] = Timer(3, self.capture_image, [code])
         self.activecaptures[code]['timer'].start()
         self.capture_image(code)
 
@@ -38,7 +38,7 @@ class Capture:
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
             self.camera.capture(filename, resize=(1548, 470))
             self.captureimages[code].append(filename)
-            self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
+            self.activecaptures[code]['timer'] = Timer(3, self.capture_image, [code])
             self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
 
@@ -54,7 +54,7 @@ class Capture:
     		return None
  
  	def delete_images(self, code):
- 		# TODO: Delete images on disk and free up memory
+ 		# TODO: Delete images on disk and free up disk space
  		pass
 
 
