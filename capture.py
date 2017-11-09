@@ -8,15 +8,16 @@ import datetime
 class Capture:
     def __init__(self):
         self.camera = picamera.PiCamera()
-        self.camera.resolution=(1809, 1017)
-        self.camera.rotation=90
-        self.camera.sharpness=75
-        self.camera.zoom = (0.27, 0.41, 0.51, 0.55)
+		cam.rotation=90
+		cam.resolution=(3280, 2464)#(1809, 1017)
+		cam.sharpness=75
+		cam.zoom = (0.27, 0.41, 0.51, 0.55)
+		cam.capture('test.jpg', resize=(1520,888), thumbnail=None)
         self.activecaptures = {}
         self.captureimages = {}
 
 
-    def start(self, code, captureSeconds=60):
+    def start(self, code, captureSeconds=30):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
         	return False
