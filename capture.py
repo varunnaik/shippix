@@ -54,7 +54,7 @@ class Capture:
         else:
             return None
  
-     def delete_images(self, code):
+    def delete_images(self, code):
          # TODO: Delete images on disk and free up disk space
          pass
 
