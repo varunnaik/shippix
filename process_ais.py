@@ -28,13 +28,12 @@ class Ais_Processor:
     def update_firebase(self, capturedata, imagelist):
     	urls = firebase.upload_images(imagelist)
     	capturedata["urls"] = urls
-    	firebase.add_document(capturedata)
+    	firebase.add_capture(capturedata)
     	# TODO: Delete imagelist
 
     def process(self, ais):
         identified, ignored = shouldprocess(ais)
         #print str(ais["mmsi"]), " ignored:", str(ignored), 'in geofence:', self.ingeofence(ais)
-
         if ais["mmsi"] in self.capturesinprogress: # If already capturing this vessel
             if not self.ingeofence(ais): # If vessel has left the geofence                
                 self.capture.stop(self.capturesinprogress[ais["mmsi"]])
