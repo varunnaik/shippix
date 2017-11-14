@@ -17,6 +17,7 @@ serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
 logging.debug("server started")
 
+session = {}
 
 while True:
 
@@ -29,53 +30,27 @@ while True:
         pad = int(payload[-1].split('*')[0][-1])
         msglength = int(payload[1])
         msgpart = int(payload[2])
+        msgseqid = payload[3]
+        msg = payload[5]
 
-        if msglength == 1:
-            rawmessage = payload[5]
-            decodedmessage = ais.decode(rawmessage,pad)
-            
+        if msglength == 1:            
+            decodedmessage = ais.decode(msg,pad)            
             aisprocessor.process(decodedmessage)
-
-            messagecontainer = ""
-        
-        else: 
-            msgcomplete = 0
-            messagecontainer += payload[5]
+        else:
+            if msgpart == 1:
+                session[msgseqid] = {}
+            session[msgseqid][int(msgpart)]=msg
+            print "Add multipart", msgseqid, msgpart, "of", msglength, ":", msg, " :: ", pad
             
-            while (msgcomplete == 0): 
-                data, addr = serverSock.recvfrom(1024)
-                payload=data.split(",")
-                rawmessage = payload[5]
-                msglength = int(payload[1])
-                msgpart = int(payload[2])
-
-                messagecontainer += rawmessage
-
-                logging.debug("incoming data -> %s", str(data))
-                logging.debug("message part -> %s", str(msgpart))
-                logging.debug("message length -> %s", str(msglength))
-                logging.debug("pad ->  %s", str(pad))
-                logging.debug("raw message -> %s", str(rawmessage))
-                logging.debug("messagecontainer -> %s", str(messagecontainer))
-
+            if msglength == msgpart: # Is this the final part?
+                message = ""
+                for i in xrange(int(msgpart)):
+                    message+=session[msgseqid][i]          
                 
-                if (msglength == msgpart):
-                    pad = int(payload[-1].split('*')[0][-1])
-                    
-                    #remove escape from test udp
-                    messagecontainer = messagecontainer.replace("\\","")
-
-                    logging.debug("final pad ->  %s", str(pad))
-                    logging.debug("final messagecontainer -> %s", str(messagecontainer))
-
-                    decodedmessage = ais.decode(messagecontainer,pad)
-                    
-                    aisprocessor.process(decodedmessage)
-
-                    messagecontainer = ""
-                    msgcomplete = 1
-    except DecodeError:
-        pass
+                print "Decode multipart", message, pad
+                decodedmessage = ais.decode(message, pad)
+                
+                aisprocessor.process(decodedmessage)
     except:
         logging.error(sys.exc_info())
 
