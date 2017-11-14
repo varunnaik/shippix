@@ -43,7 +43,7 @@ class Ais_Processor:
                 del self.capturesinprogress[mmsi]
                 del currently_inside_fence[mmsi]
         elif self.ingeofence(ais):            
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.utcnow()            
             if mmsi not in geofence_last_seen:
                 return geofence_last_seen[mmsi] = now
 

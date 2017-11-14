@@ -1,5 +1,5 @@
 import socket
-import ais.stream
+import ais
 from ais import DecodeError
 import logging
 import json
@@ -30,7 +30,7 @@ while True:
         pad = int(payload[-1].split('*')[0][-1])
         msglength = int(payload[1])
         msgpart = int(payload[2])
-        msgseqid = payload[3]
+        msgseqid = int(payload[3])
         msg = payload[5]
 
         if msglength == 1:            
@@ -39,16 +39,16 @@ while True:
         else:
             if msgpart == 1:
                 session[msgseqid] = {}
-            session[msgseqid][int(msgpart)]=msg
+            session[msgseqid][msgpart]=msg
             print "Add multipart", msgseqid, msgpart, "of", msglength, ":", msg, " :: ", pad
             
             if msglength == msgpart: # Is this the final part?
-                message = ""
-                for i in xrange(int(msgpart)):
-                    message+=session[msgseqid][i]          
+                msg = ""
+                for i in xrange(msgpart):
+                    msg+=session[msgseqid][i]          
                 
-                print "Decode multipart", message, pad
-                decodedmessage = ais.decode(message, pad)
+                print "Decode multipart", msg, pad
+                decodedmessage = ais.decode(msg, pad)
                 
                 aisprocessor.process(decodedmessage)
     except:
