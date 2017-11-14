@@ -7,6 +7,7 @@ import requests
 import firebase
 
 currently_inside_fence = {}
+geofence_last_seen = {}
 
 class Ais_Processor:
     def __init__(self):
@@ -26,34 +27,45 @@ class Ais_Processor:
         return self.geofence.point_in_fence(ais["y"], ais["x"])
 
     def update_firebase(self, capturedata, imagelist):
-    	urls = firebase.upload_images(imagelist)
-    	capturedata["urls"] = urls
-    	firebase.add_capture(capturedata)
-    	# TODO: Delete imagelist
+        urls = firebase.upload_images(imagelist)
+        capturedata["urls"] = urls
+        firebase.add_capture(capturedata)
+        # TODO: Delete imagelist
 
     def process(self, ais):
         identified, ignored = shouldprocess(ais)
-        if ais["mmsi"] in self.capturesinprogress: # If already capturing this vessel
+        mmsi = ais["mmsi"]
+        if mmsi in self.capturesinprogress: # If already capturing this vessel
             if not self.ingeofence(ais): # If vessel has left the geofence                
-                self.capture.stop(self.capturesinprogress[ais["mmsi"]])
-                images = self.capture.get_images(self.capturesinprogress[ais["mmsi"]])
-                self.update_firebase(currently_inside_fence[ais["mmsi"]], images)
-                del self.capturesinprogress[ais["mmsi"]]
-                del currently_inside_fence[ais["mmsi"]]
-        elif self.ingeofence(ais):
-            if ais["mmsi"] not in currently_inside_fence:
-            	print str(ais["mmsi"]), " ignored:", str(ignored)
+                self.capture.stop(self.capturesinprogress[mmsi])
+                images = self.capture.get_images(self.capturesinprogress[mmsi])
+                self.update_firebase(currently_inside_fence[mmsi], images)
+                del self.capturesinprogress[mmsi]
+                del currently_inside_fence[mmsi]
+        elif self.ingeofence(ais):            
+            now = datetime.datetime.utcnow()
+            if mmsi not in geofence_last_seen:
+                return geofence_last_seen[mmsi] = now
+
+            # if this is the second time in 30s that we've seen this vessel in the geofence then process it
+            if geofence_last_seen[mmsi] + datetime.timedelta(seconds = 30) > now:
+                return geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
+
+            geofence_last_seen[mmsi] = now
+
+            if mmsi not in currently_inside_fence:
+                print str(mmsi), " ignored:", str(ignored)
                 logtraffic(ais)
-                currently_inside_fence[ais["mmsi"]] = {'date': u''+datetime.datetime.utcnow().isoformat(), 'mmsi': ais['mmsi']} # Log once only when a ship enters the geofence
-                firebase.add_document(currently_inside_fence[ais["mmsi"]])
+                currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi} # Log once only when a ship enters the geofence
+                firebase.add_document(currently_inside_fence[mmsi])
             if not ignored:
                 n = datetime.datetime.now()
-                captureid = str(ais["mmsi"]) + n.strftime("%Y%m%d")
+                captureid = str(mmsi) + n.strftime("%Y%m%d")
                 self.capture.start(captureid)
-                self.capturesinprogress[ais["mmsi"]] = captureid
+                self.capturesinprogress[mmsi] = captureid
         else:
-            if ais["mmsi"] in currently_inside_fence: # When a ship leaves the fenced region mark it as outside
-                del currently_inside_fence[ais["mmsi"]]                
+            if mmsi in currently_inside_fence: # When a ship leaves the fenced region mark it as outside
+                del currently_inside_fence[mmsi]                
 
         if not identified and not ignored:
             self.identifyvessel(ais) # Note: Synchronous call!
