@@ -19,18 +19,24 @@ logging.debug("server started")
 
 session = {}
 
+def getmessage():
+    data, addr = serverSock.recvfrom(1024)
+    payload = data.split(",")
+
+    pad = int(payload[-1].split('*')[0][-1])
+    msglength = int(payload[1])
+    msgpart = int(payload[2])
+    msgseqid = 0
+    if payload[3]:
+        msgseqid = int(payload[3])
+    msg = payload[5]
+    return (msg, pad, msgpart, msglength, msgseqid)
+
 while True:
 
     try:
-        data, addr = serverSock.recvfrom(1024)
-        payload = data.split(",")
-
-        pad = int(payload[-1].split('*')[0][-1])
-        msglength = int(payload[1])
-        msgpart = int(payload[2])
-        msgseqid = int(payload[3])
-        msg = payload[5]
-
+        
+        msg, pad, msgpart, msglength, msgseqid = getmessage()
         if msglength == 1:            
             decodedmessage = ais.decode(msg,pad)            
             aisprocessor.process(decodedmessage)
@@ -38,17 +44,21 @@ while True:
             if msgpart == 1:
                 session[msgseqid] = {}
             session[msgseqid][msgpart] = msg
-            print "Add multipart", msgseqid, msgpart, "of", msglength, ":", msg, " :: ", pad
-            
-            if msglength == msgpart: # Is this the final part?
-                msg = ""
-                for i in xrange(msgpart):
-                    msg += session[msgseqid][i]          
+
+            while msglength != msgpart:
+                msg, pad, msgpart, msglength, msgseqid = getmessage()
+                session[msgseqid][msgpart] = msg
+                print "Add multipart", msgseqid, msgpart, "of", msglength, ":", msg, " :: ", pad
                 
-                print "Decode multipart", msg, pad, "len", len(msg)
-                decodedmessage = ais.decode(msg, 2) # libais rejects AIS5 messages where pad is NOT 2
-                print decodedmessage
-                aisprocessor.process_ais5(decodedmessage)
+                if msglength == msgpart: # Is this the final part?
+                    msg = ""
+                    for i in xrange(msgpart):
+                        msg += session[msgseqid][i]          
+                    
+                    print "Decode multipart", msg, pad, "len", len(msg)
+                    decodedmessage = ais.decode(msg, 2) # libais rejects AIS5 messages where pad is NOT 2
+                    print decodedmessage
+                    aisprocessor.process_ais5(decodedmessage)
     except:
         logging.error(sys.exc_info())
 
