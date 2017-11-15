@@ -44,10 +44,8 @@ while True:
             while msglength != msgpart:
                 msgfragment, pad, msgpart, msglength, msgseqid = getmessage()
                 msg += msgfragment
-                print "Add multipart", msgseqid, msgpart, "of", msglength, ":", msg, " :: ", pad
                 
                 if msglength == msgpart: # Is this the final part?
-                    print "Decode multipart", msg, pad, "len", len(msg)
                     decodedmessage = ais.decode(msg[0:71], 2) # libais rejects AIS5 messages where pad is NOT 2 and length is NOT 71
                     print decodedmessage
                     aisprocessor.process_ais5(decodedmessage)
