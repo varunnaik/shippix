@@ -39,7 +39,7 @@ class Ais_Processor:
     def process_ais5(ais):
         # http://catb.org/gpsd/AIVDM.html#_type_5_static_and_voyage_related_ais
         if ais['id'] != 5:
-            throw("Not an AIS 5 message")
+            raise ValueError('Not an AIS5 message', ais)
         
         dim_b = ais['dim_a']
         dim_s = ais['dim_b']
@@ -60,7 +60,6 @@ class Ais_Processor:
             'notes': 'Destination ' + clean(ais['destination']) + ', ETA:' + str(ais['eta_day']) + '/' + str(ais['eta_month']),
             'callsign': clean(ais['callsign'])
         }
-
         updatevessel(ais['mmsi'], ignored=ignored, identified=True, fullinfo=shipinfo)
 
     def process(self, ais):
