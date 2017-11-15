@@ -41,20 +41,13 @@ while True:
             decodedmessage = ais.decode(msg,pad)            
             aisprocessor.process(decodedmessage)
         else:
-            if msgpart == 1:
-                session[msgseqid] = {}
-            session[msgseqid][msgpart] = msg
-
+            print "Add multipart", msgseqid, msgpart, "of", msglength, ":", msg, " :: ", pad
             while msglength != msgpart:
-                msg, pad, msgpart, msglength, msgseqid = getmessage()
-                session[msgseqid][msgpart] = msg
+                msgfragment, pad, msgpart, msglength, msgseqid = getmessage()
+                msg += msgfragment
                 print "Add multipart", msgseqid, msgpart, "of", msglength, ":", msg, " :: ", pad
                 
                 if msglength == msgpart: # Is this the final part?
-                    msg = ""
-                    for i in xrange(msgpart):
-                        msg += session[msgseqid][i]          
-                    
                     print "Decode multipart", msg, pad, "len", len(msg)
                     decodedmessage = ais.decode(msg, 2) # libais rejects AIS5 messages where pad is NOT 2
                     print decodedmessage
