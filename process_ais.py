@@ -11,7 +11,7 @@ currently_inside_fence = {}
 geofence_last_seen = {}
 
 def clean(field):
-    field.strip().replace('@', '')
+    return field.strip().replace('@', '')
 
 class Ais_Processor:
     def __init__(self):
