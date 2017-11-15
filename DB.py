@@ -13,6 +13,10 @@ def logtraffic(ais):
     c.execute("INSERT INTO trafficlog VALUES (?, ?, ?)", (datetime.datetime.utcnow().isoformat(), ais["mmsi"], json.dumps(ais)))
     conn.commit()
 
+def getvessel(mmsi):
+    c.execute("SELECT name, details, size, notes FROM vesselinfo WHERE mmsi = ?", (mmsi,))
+    return c.fetchone()
+
 def updatevessel(mmsi, ignored, identified, fullinfo):
     if fullinfo == None:
         c.execute("INSERT OR REPLACE INTO vesselinfo (mmsi, ignored, identified) VALUES (?, ?, ?)", (mmsi, ignored, identified))

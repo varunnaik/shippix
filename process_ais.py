@@ -61,6 +61,7 @@ class Ais_Processor:
             'callsign': clean(ais['callsign'])
         }
         updatevessel(ais['mmsi'], ignored=ignored, identified=True, fullinfo=shipinfo)
+        print "Update vessel", ais['mmsi'], shipinfo['name']
 
     def process(self, ais):
         identified, ignored = shouldprocess(ais)
@@ -79,7 +80,8 @@ class Ais_Processor:
                 geofence_last_seen[mmsi] = now
                 return 
 
-            # if this is the second time in 30s that we've seen this vessel in the geofence then process it
+            # If this is the second time in 30s that we've seen this vessel in the geofence then process it
+            # This is to prevent logging random jumps in GPS position reported by the ships
             if now - geofence_last_seen[mmsi] > datetime.timedelta(seconds = 30):
                 print "geofence choke ignore", mmsi, geofence_last_seen[mmsi] ,now
                 geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
@@ -90,7 +92,8 @@ class Ais_Processor:
             if mmsi not in currently_inside_fence:
                 print str(mmsi), ' ignored:', str(ignored)
                 logtraffic(ais)
-                currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi} # Log once only when a ship enters the geofence
+                vesseldetails = getvessel(mmsi)
+                currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi, 'details': vesseldetails} # Log once only when a ship enters the geofence
                 firebase.add_document(currently_inside_fence[mmsi])
             if not ignored:
                 n = datetime.datetime.now()
@@ -101,5 +104,5 @@ class Ais_Processor:
             if mmsi in currently_inside_fence: # When a ship leaves the fenced region mark it as outside
                 del currently_inside_fence[mmsi]                
 
-        #if not identified and not ignored:
-        #    self.identifyvessel(ais) # Note: Synchronous call!
+        if not identified and not ignored:
+            self.identifyvessel(ais) # Note: Synchronous call!
