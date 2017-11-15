@@ -36,7 +36,7 @@ class Ais_Processor:
         firebase.add_capture(capturedata)
         # TODO: Delete imagelist
 
-    def process_ais5(ais):
+    def process_ais5(self, ais):
         # http://catb.org/gpsd/AIVDM.html#_type_5_static_and_voyage_related_ais
         if ais['id'] != 5:
             raise ValueError('Not an AIS5 message', ais)
