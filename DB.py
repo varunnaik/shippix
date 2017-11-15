@@ -15,7 +15,13 @@ def logtraffic(ais):
 
 def getvessel(mmsi):
     c.execute("SELECT name, details, size, notes FROM vesselinfo WHERE mmsi = ?", (mmsi,))
-    return c.fetchone()
+    val = c.fetchone()
+    return {
+        'name': val[0],
+        'detials': val[1],
+        'size': val[2],
+        'notes': val[3]
+    }
 
 def updatevessel(mmsi, ignored, identified, fullinfo):
     if fullinfo == None:
