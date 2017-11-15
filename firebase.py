@@ -20,7 +20,7 @@ def add_document(trafficdata):
     print "Uploaded to firebase"
 
 def add_capture(capturedata):
-	doc_ref = db.collection(u'captures').document(str(capturedata['mmsi'])+"-"+datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%M"))
+    doc_ref = db.collection(u'captures').document(str(capturedata['mmsi'])+"-"+datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%M"))
     doc_ref.set(capturedata)
     print "Capture to firebase"
 
@@ -36,4 +36,4 @@ def upload_images(images):
     return urls
 
 def sync_shipinfo():
-	pass
+    pass
