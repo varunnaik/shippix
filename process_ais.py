@@ -76,11 +76,13 @@ class Ais_Processor:
         elif self.ingeofence(ais):            
             now = datetime.datetime.utcnow()            
             if mmsi not in geofence_last_seen:
-                return geofence_last_seen[mmsi] = now
+                geofence_last_seen[mmsi] = now
+                return 
 
             # if this is the second time in 30s that we've seen this vessel in the geofence then process it
             if geofence_last_seen[mmsi] + datetime.timedelta(seconds = 30) > now:
-                return geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
+                geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
+                return 
 
             geofence_last_seen[mmsi] = now
 
