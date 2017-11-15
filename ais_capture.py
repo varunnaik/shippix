@@ -25,8 +25,6 @@ while True:
         data, addr = serverSock.recvfrom(1024)
         payload=data.split(",")
 
-        messagecontainer = ""
-
         pad = int(payload[-1].split('*')[0][-1])
         msglength = int(payload[1])
         msgpart = int(payload[2])
@@ -47,10 +45,10 @@ while True:
                 for i in xrange(msgpart):
                     msg+=session[msgseqid][i]          
                 
-                print "Decode multipart", msg, pad
+                print "Decode multipart", msg, pad, "len", len(msg)
                 decodedmessage = ais.decode(msg, pad)
-                
-                aisprocessor.process(decodedmessage)
+                print decodedmessage
+                aisprocessor.process_ais5(decodedmessage)
     except:
         logging.error(sys.exc_info())
 

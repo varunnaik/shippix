@@ -5,9 +5,13 @@ from capture import Capture
 import datetime
 import requests
 import firebase
+from ais_classifications import classifications
 
 currently_inside_fence = {}
 geofence_last_seen = {}
+
+def clean(field):
+    field.strip().replace('@', '')
 
 class Ais_Processor:
     def __init__(self):
@@ -31,6 +35,33 @@ class Ais_Processor:
         capturedata["urls"] = urls
         firebase.add_capture(capturedata)
         # TODO: Delete imagelist
+
+    def process_ais5(ais):
+        # http://catb.org/gpsd/AIVDM.html#_type_5_static_and_voyage_related_ais
+        if ais['id'] != 5:
+            return
+        
+        dim_b = ais['dim_a']
+        dim_s = ais['dim_b']
+        dim_p = ais['dim_c']
+        dim_sb = ais['dim_d']
+        # If too small to photograph we'll ignore it
+        ignored = True
+        if dim_b + dim_s > 80: # Vessel is > 80m long, excluding ferries, tugs and smaller craft
+            ignored = False
+
+        shipinfo = {
+            'name': clean(ais['name']),
+            'flag': '',
+            'gross_tonnage': '',
+            'url': '',
+            'details': classifications[str(ais['type_and_cargo'])],
+            'size': str(dim_b+dim_s) + 'x' + str(dim_p+dim_sb),
+            'notes': "Destination " + clean(ais['destination']) + ", ETA:" + str(ais['eta_day']) + '/' + str(ais['eta_month']),
+            'callsign': clean(ais['callsign'])
+        }
+
+        updatevessel(ais["mmsi"], ignored=ignored, identified=True, fullinfo=shipinfo)
 
     def process(self, ais):
         identified, ignored = shouldprocess(ais)
