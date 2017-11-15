@@ -23,7 +23,7 @@ while True:
 
     try:
         data, addr = serverSock.recvfrom(1024)
-        payload=data.split(",")
+        payload = data.split(",")
 
         pad = int(payload[-1].split('*')[0][-1])
         msglength = int(payload[1])
@@ -37,16 +37,16 @@ while True:
         else:
             if msgpart == 1:
                 session[msgseqid] = {}
-            session[msgseqid][msgpart]=msg
+            session[msgseqid][msgpart] = msg
             print "Add multipart", msgseqid, msgpart, "of", msglength, ":", msg, " :: ", pad
             
             if msglength == msgpart: # Is this the final part?
                 msg = ""
                 for i in xrange(msgpart):
-                    msg+=session[msgseqid][i]          
+                    msg += session[msgseqid][i]          
                 
                 print "Decode multipart", msg, pad, "len", len(msg)
-                decodedmessage = ais.decode(msg, pad)
+                decodedmessage = ais.decode(msg, 2) # libais rejects AIS5 messages where pad is NOT 2
                 print decodedmessage
                 aisprocessor.process_ais5(decodedmessage)
     except:
