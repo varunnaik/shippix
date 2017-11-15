@@ -23,8 +23,6 @@ class Capture:
         print "Start capture"
         self.captureimages[code] = []
         self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None }
-        self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
-        self.activecaptures[code]['timer'].start()
         self.capture_image(code)
 
     def capture_image(self, code):
@@ -38,7 +36,7 @@ class Capture:
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
             self.camera.capture(filename, resize=(1027,600))
             self.captureimages[code].append(filename)
-            self.activecaptures[code]['timer'] = Timer(3, self.capture_image, [code])
+            self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
             self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
 

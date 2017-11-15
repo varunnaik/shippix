@@ -70,6 +70,7 @@ class Ais_Processor:
             if not self.ingeofence(ais): # If vessel has left the geofence                
                 self.capture.stop(self.capturesinprogress[mmsi])
                 images = self.capture.get_images(self.capturesinprogress[mmsi])
+                print "Imagelist to Firebase", images
                 self.update_firebase(currently_inside_fence[mmsi], images)
                 del self.capturesinprogress[mmsi]
                 del currently_inside_fence[mmsi]
