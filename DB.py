@@ -15,9 +15,9 @@ def logtraffic(ais):
 
 def updatevessel(mmsi, ignored, identified, fullinfo):
     if fullinfo == None:
-        c.execute("INSERT INTO vesselinfo (mmsi, ignored, identified) VALUES (?, ?, ?)", (mmsi, ignored, identified))
+        c.execute("INSERT OR REPLACE INTO vesselinfo (mmsi, ignored, identified) VALUES (?, ?, ?)", (mmsi, ignored, identified))
     else:
-        c.execute("INSERT INTO vesselinfo VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (mmsi, ignored, fullinfo["url"], identified, fullinfo["name"], fullinfo["details"], fullinfo["size"], fullinfo["gross_tonnage"], fullinfo["notes"], fullinfo["flag"]))
+        c.execute("INSERT OR REPLACE INTO vesselinfo VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (mmsi, ignored, fullinfo["url"], identified, fullinfo["name"], fullinfo["details"], fullinfo["size"], fullinfo["gross_tonnage"], fullinfo["notes"], fullinfo["flag"]))
     conn.commit()
 
 def shouldprocess(ais):

@@ -57,7 +57,7 @@ class Ais_Processor:
             'url': '',
             'details': classifications[str(ais['type_and_cargo'])],
             'size': str(dim_b+dim_s) + 'm x' + str(dim_p+dim_sb) + 'm',
-            'notes': 'Destination ' + clean(ais['destination']) + ', ETA:' + str(ais['eta_day']) + '/' + str(ais['eta_month']),
+            'notes': 'Destination ' + (clean(ais['destination']) or 'Unknown' ) + ', ETA:' + str(ais['eta_day']) + '/' + str(ais['eta_month']),
             'callsign': clean(ais['callsign'])
         }
         updatevessel(ais['mmsi'], ignored=ignored, identified=True, fullinfo=shipinfo)
@@ -82,6 +82,7 @@ class Ais_Processor:
             # if this is the second time in 30s that we've seen this vessel in the geofence then process it
             if geofence_last_seen[mmsi] + datetime.timedelta(seconds = 30) > now:
                 geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
+                print "ignore mmsi"
                 return 
 
             geofence_last_seen[mmsi] = now
