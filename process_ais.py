@@ -56,7 +56,7 @@ class Ais_Processor:
             'gross_tonnage': '',
             'url': '',
             'details': classifications[str(ais['type_and_cargo'])],
-            'size': str(dim_b+dim_s) + 'm x' + str(dim_p+dim_sb) + 'm',
+            'size': str(dim_b+dim_s) + 'm x ' + str(dim_p+dim_sb) + 'm',
             'notes': 'Destination ' + (clean(ais['destination']) or 'Unknown' ) + ', ETA:' + str(ais['eta_day']) + '/' + str(ais['eta_month']),
             'callsign': clean(ais['callsign'])
         }
@@ -80,7 +80,7 @@ class Ais_Processor:
                 return 
 
             # if this is the second time in 30s that we've seen this vessel in the geofence then process it
-            if geofence_last_seen[mmsi] + datetime.timedelta(seconds = 30) > now:
+            if now - geofence_last_seen[mmsi] > datetime.timedelta(seconds = 30):
                 print "geofence choke ignore", mmsi, geofence_last_seen[mmsi] ,now
                 geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
                 return 
