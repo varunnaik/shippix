@@ -27,7 +27,7 @@ class Capture:
 
     def capture_image(self, code):
         '''Capture an image provided the capture has not been stopped'''
-        if not self.activecaptures[code]['capture'] \
+        if self.activecaptures[code] and not self.activecaptures[code]['capture'] \
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             self.activecaptures[code]['timer'].cancel()    
             del self.activecaptures[code] # Then delete the capture
