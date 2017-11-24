@@ -103,6 +103,3 @@ class Ais_Processor:
         else:
             if mmsi in currently_inside_fence: # When a ship leaves the fenced region mark it as outside
                 del currently_inside_fence[mmsi]                
-
-        if not identified and not ignored:
-            self.identifyvessel(ais) # Note: Synchronous call!

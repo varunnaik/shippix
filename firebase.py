@@ -30,7 +30,7 @@ def upload_images(images):
         blob = bucket.blob(basename(image))
         with open(image, 'rb') as image_file:
             blob.upload_from_file(image_file)
-        urls.append(blob.public_url)
+        urls.append(unicode(blob.public_url))
     print "Uploaded images to GCS"
 
     return urls

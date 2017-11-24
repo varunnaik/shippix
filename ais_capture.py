@@ -5,6 +5,7 @@ import logging
 import json
 import sys
 from process_ais import Ais_Processor
+import traceback
 
 aisprocessor = Ais_Processor()
 
@@ -49,6 +50,5 @@ while True:
                     decodedmessage = ais.decode(msg[0:71], 2) # libais rejects AIS5 messages where pad is NOT 2 and length is NOT 71
                     aisprocessor.process_ais5(decodedmessage)
     except:
-        logging.error(sys.exc_info())
-
+        logging.error(traceback.format_exc())
 

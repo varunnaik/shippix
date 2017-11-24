@@ -27,13 +27,15 @@ def updatevessel(mmsi, ignored, identified, fullinfo):
     if fullinfo == None:
         c.execute("INSERT OR REPLACE INTO vesselinfo (mmsi, ignored, identified) VALUES (?, ?, ?)", (mmsi, ignored, identified))
     else:
-        c.execute("INSERT OR REPLACE INTO vesselinfo VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (mmsi, ignored, fullinfo["url"], identified, fullinfo["name"], fullinfo["details"], fullinfo["size"], fullinfo["gross_tonnage"], fullinfo["notes"], fullinfo["flag"]))
+        c.execute("INSERT OR REPLACE INTO vesselinfo (mmsi, ignored, url, identified, name, details, size, gross_tonnage, notes, flag) VALUES (?, ?, ?, ?, ?, ?, coalesce(?,size), coalesce(?, gross_tonnage), coalesce(?, notes), coalesce(?, flag))", (mmsi, ignored, fullinfo["url"], identified, fullinfo["name"], fullinfo["details"], fullinfo["size"], fullinfo["gross_tonnage"], fullinfo["notes"], fullinfo["flag"]))
     conn.commit()
 
 def shouldprocess(ais):
     '''Return list [identified, ignored]'''
-    c.execute("SELECT identified, ignored FROM vesselinfo WHERE mmsi = ?", (ais["mmsi"],))
+    c.execute("SELECT identified, ignored, forcecapture FROM vesselinfo WHERE mmsi = ?", (ais["mmsi"],))
     status = c.fetchone()
     if status == None:
         return [False, False]
-    return map(bool, status)
+    identified, ignored, forcecapture = status    
+    ignored = forcecapture == 0 and ignored == 1 # Forcecapture trumps ignored - if it is set
+    return [identified, ignored]
