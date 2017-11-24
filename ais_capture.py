@@ -16,16 +16,17 @@ UDP_PORT_NO = 10110
 
 def connect():
     serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    serverSock.settimeout(3)
+    serverSock.settimeout(10)
     serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
     print("Connected to AIS server")
-    return
+    return serverSock
 
 serverSock = connect()
 print "AIS listener started" 
 session = {}
 
 def getmessage():
+    global serverSock
     try:
         data, addr = serverSock.recvfrom(1024)
     except:
