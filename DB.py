@@ -37,5 +37,5 @@ def shouldprocess(ais):
     if status == None:
         return [False, False]
     identified, ignored, forcecapture = status    
-    ignored = forcecapture == 0 and ignored == 1 # Forcecapture trumps ignored - if it is set
+    ignored = not forcecapture and ignored == 1 # Forcecapture trumps ignored - if it is set
     return [identified, ignored]
