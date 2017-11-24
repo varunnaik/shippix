@@ -14,14 +14,26 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 UDP_IP_ADDRESS = "127.0.0.1"
 UDP_PORT_NO = 10110
 
-serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
+serverSock=None
+def connect_rtl_ais():
+    serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    serverSock.settimeout(10)
+    serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
+    logging.debug("Connected to rtl_ais server")
+
+connect_rtl_ais()
 logging.debug("server started")
 
 session = {}
 
 def getmessage():
     data, addr = serverSock.recvfrom(1024)
+    
+    if not data:
+        serverSock.close()
+        connect_rtl_ais()
+        return
+
     payload = data.split(",")
 
     pad = int(payload[-1].split('*')[0][-1])

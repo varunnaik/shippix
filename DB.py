@@ -16,7 +16,8 @@ def logtraffic(ais):
 def getvessel(mmsi):
     c.execute("SELECT name, details, size, notes FROM vesselinfo WHERE mmsi = ?", (mmsi,))
     val = c.fetchone()
-    if not val return None
+    if not val:
+        return None
     return {
         'name': val[0],
         'detials': val[1],
