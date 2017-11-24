@@ -27,7 +27,7 @@ def updatevessel(mmsi, ignored, identified, fullinfo):
     if fullinfo == None:
         c.execute("INSERT OR REPLACE INTO vesselinfo (mmsi, ignored, identified) VALUES (?, ?, ?)", (mmsi, ignored, identified))
     else:
-        c.execute("INSERT OR REPLACE INTO vesselinfo (mmsi, ignored, url, identified, name, details, size, gross_tonnage, notes, flag) VALUES (?, ?, ?, ?, ?, ?, coalesce(?,size), coalesce(?, gross_tonnage), coalesce(?, notes), coalesce(?, flag))", (mmsi, ignored, fullinfo["url"], identified, fullinfo["name"], fullinfo["details"], fullinfo["size"], fullinfo["gross_tonnage"], fullinfo["notes"], fullinfo["flag"]))
+        c.execute("INSERT OR REPLACE INTO vesselinfo (mmsi, ignored, url, identified, name, details, size, gross_tonnage, notes, flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (mmsi, ignored, fullinfo["url"], identified, fullinfo["name"], fullinfo["details"], fullinfo["size"], fullinfo["gross_tonnage"], fullinfo["notes"], fullinfo["flag"]))
     conn.commit()
 
 def shouldprocess(ais):
