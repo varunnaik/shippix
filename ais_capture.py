@@ -14,16 +14,25 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 UDP_IP_ADDRESS = "127.0.0.1"
 UDP_PORT_NO = 10110
 
+def connect():
+    serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    serverSock.settimeout(3)
+    serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
+    print("Connected to AIS server")
+    return
 
-serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-serverSock.settimeout(10)
-serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
-logging.debug("AIS listener started")
-
+serverSock = connect()
+print "AIS listener started" 
 session = {}
 
 def getmessage():
-    data, addr = serverSock.recvfrom(1024)
+    try:
+        data, addr = serverSock.recvfrom(1024)
+    except:
+        serverSock.close()
+        serverSock = connect()
+        data, addr = serverSock.recvfrom(1024)
+
     payload = data.split(",")
 
     pad = int(payload[-1].split('*')[0][-1])
