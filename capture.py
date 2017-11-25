@@ -10,8 +10,8 @@ class Capture:
         self.camera = picamera.PiCamera()
         self.camera.rotation=270
         self.camera.resolution=(3280, 2464)#(1809, 1017)
-        self.camera.sharpness=85
-        self.camera.zoom = (0.0, 0.27, 0.29, 0.55)
+        self.camera.sharpness=45
+        self.camera.zoom = (0.10714285714285714, 0.29024390243902437, 0.2792207792207792, 0.526219512195122)
         self.activecaptures = {}
         self.captureimages = {}
 
@@ -27,14 +27,14 @@ class Capture:
 
     def capture_image(self, code):
         '''Capture an image provided the capture has not been stopped'''
-        if self.activecaptures[code] and not self.activecaptures[code]['capture'] \
+        if (self.activecaptures[code] and not self.activecaptures[code]['capture']) \
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             self.activecaptures[code]['timer'].cancel()    
             del self.activecaptures[code] # Then delete the capture
         else:
             self.activecaptures[code]['seq'] += 1;
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
-            self.camera.capture(filename, resize=(1289,555))
+            self.camera.capture(filename, resize=(1089,434))
             self.captureimages[code].append(filename)
             self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
             self.activecaptures[code]['timer'].start()
