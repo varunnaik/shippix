@@ -37,7 +37,7 @@ def shouldprocess(ais):
     c.execute("SELECT identified, ignored, forcecapture FROM vesselinfo WHERE mmsi = ?", (ais["mmsi"],))
     status = c.fetchone()
     if status == None:
-        return [False, False]
+        return [False, True] # Ignore all unknown ships
     identified, ignored, forcecapture = status    
     ignored = not forcecapture and ignored == 1 # Forcecapture trumps ignored - if it is set
     return [identified, ignored]

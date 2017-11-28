@@ -102,4 +102,5 @@ class Ais_Processor:
                 self.capturesinprogress[mmsi] = captureid
         else:
             if mmsi in currently_inside_fence: # When a ship leaves the fenced region mark it as outside
-                del currently_inside_fence[mmsi]                
+                del currently_inside_fence[mmsi]
+        # If we have not been able to identify the ship over AIS then attempt to do so against the ITU database           
