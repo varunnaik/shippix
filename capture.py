@@ -1,9 +1,13 @@
 # Capture images one per second for 60 seconds.
 # Can have multiple captures running simultaneously
 import picamera
+import io
+import boto3
 from threading import Timer
 import datetime
+import camera
 # https://www.raspberrypi.org/documentation/usage/camera/python/README.md
+s3 = boto3.resource('s3')
 
 class Capture:
     def __init__(self):
@@ -14,6 +18,8 @@ class Capture:
         self.camera.zoom = (0.10714285714285714, 0.29024390243902437, 0.2792207792207792, 0.526219512195122)
         self.activecaptures = {}
         self.captureimages = {}
+        self.resize = (1089,434)
+	    self.camera.start_preview() #Warm the camera up 
 
 
     def start(self, code, captureSeconds=30):
@@ -31,14 +37,28 @@ class Capture:
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             self.activecaptures[code]['timer'].cancel()    
             del self.activecaptures[code] # Then delete the capture
+            # Process images to video (optional?)
         else:
             self.activecaptures[code]['seq'] += 1;
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
-            self.camera.capture(filename, resize=(1089,434))
+            self.capture_s3(filename)
             self.captureimages[code].append(filename)
             self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
             self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
+
+    def capture_s3(filename):
+        '''Capture image with camera and upload to s3 using given filename'''
+        # Create the in-memory stream
+        stream = io.BytesIO()
+        self.camera.capture(stream, format='jpeg', resize=self.resize)
+        # "Rewind" the stream to the beginning so we can read its content
+        stream.seek(0)
+        s3.Object(self.bucket_name, filename).put(Body=stream) #.upload_fileobj(stream)
+        stream.close()
+
+    def capture_file(filename):
+        self.camera.capture(filename, resize=self.resize)
 
     def stop(self, code):
         '''Stop capture'''
