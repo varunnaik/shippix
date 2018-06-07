@@ -4,7 +4,6 @@ from geofence import Geofence
 from capture import Capture
 import datetime
 import requests
-import firebase
 from ais_classifications import classifications
 
 currently_inside_fence = {}
@@ -70,8 +69,8 @@ class Ais_Processor:
             if not self.ingeofence(ais): # If vessel has left the geofence                
                 self.capture.stop(self.capturesinprogress[mmsi])
                 images = self.capture.get_images(self.capturesinprogress[mmsi])
-                print "Imagelist to Firebase", images
-                self.update_firebase(currently_inside_fence[mmsi], images)
+                #print "Imagelist to Firebase", images
+                #self.update_firebase(currently_inside_fence[mmsi], images)
                 del self.capturesinprogress[mmsi]
                 del currently_inside_fence[mmsi]
         elif self.ingeofence(ais):            
@@ -94,7 +93,7 @@ class Ais_Processor:
                 logtraffic(ais)
                 vesseldetails = getvessel(mmsi)
                 currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi, 'details': vesseldetails} # Log once only when a ship enters the geofence
-                firebase.add_document(currently_inside_fence[mmsi])
+                #firebase.add_document(currently_inside_fence[mmsi])
             if not ignored:
                 n = datetime.datetime.now()
                 captureid = str(mmsi) + n.strftime('%Y%m%d')
