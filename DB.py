@@ -41,5 +41,5 @@ def shouldprocess(ais):
     if status == None:
         return [False, True] # Ignore all unknown ships
     identified, ignored, forcecapture = status    
-    ignored = not forcecapture and ignored == 1 # Forcecapture trumps ignored - if it is set
+    ignored = not forcecapture and ignored == true # Forcecapture trumps ignored - if it is set
     return [identified, ignored]
