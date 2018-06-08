@@ -31,7 +31,7 @@ def updatevessel(mmsi, ignored, identified, fullinfo):
     if fullinfo == None:
         c.execute("INSERT INTO vesselinfo (mmsi, ignored, identified) VALUES (%s, %s, %s)  ON CONFLICT (mmsi) DO UPDATE SET ignored = EXCLUDED.ignored", (mmsi, ignored, identified))
     else:
-        c.execute("INSERT INTO vesselinfo (mmsi, ignored, url, identified, name, details, size, gross_tonnage, notes, flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) d ON CONFLICT (mmsi) DO UPDATE SET ignored = EXCLUDED.ignored", (mmsi, ignored, fullinfo["url"], identified, fullinfo["name"], fullinfo["details"], fullinfo["size"], fullinfo["gross_tonnage"], fullinfo["notes"], fullinfo["flag"]))
+        c.execute("INSERT INTO vesselinfo (mmsi, ignored, url, identified, name, details, size, gross_tonnage, notes, flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (mmsi) DO UPDATE SET ignored = EXCLUDED.ignored", (mmsi, ignored, fullinfo["url"], identified, fullinfo["name"], fullinfo["details"], fullinfo["size"], fullinfo["gross_tonnage"], fullinfo["notes"], fullinfo["flag"]))
     conn.commit()
 
 def shouldprocess(ais):
