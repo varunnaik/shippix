@@ -5,7 +5,7 @@ import io
 import boto3
 from threading import Timer
 import datetime
-import camera
+import os
 # https://www.raspberrypi.org/documentation/usage/camera/python/README.md
 s3 = boto3.resource('s3')
 
@@ -19,7 +19,8 @@ class Capture:
         self.activecaptures = {}
         self.captureimages = {}
         self.resize = (1089,434)
-	    self.camera.start_preview() #Warm the camera up 
+        self.camera.start_preview() #Warm the camera up
+        self.bucket_name = os.environ['BUCKET']
 
 
     def start(self, code, captureSeconds=30):
