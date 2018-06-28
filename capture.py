@@ -26,6 +26,7 @@ class Capture:
     def start(self, code, captureSeconds=30):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
+            print "Already capturing!"
             return False
         print "Start capture"
         self.captureimages[code] = []
@@ -36,6 +37,7 @@ class Capture:
         '''Capture an image provided the capture has not been stopped'''
         if (self.activecaptures[code] and not self.activecaptures[code]['capture']) \
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
+            print "Capture finished"
             self.activecaptures[code]['timer'].cancel()    
             del self.activecaptures[code] # Then delete the capture
             # Process images to video (optional?)
@@ -44,11 +46,11 @@ class Capture:
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
             self.capture_s3(filename)
             self.captureimages[code].append(filename)
-            self.activecaptures[code]['timer'] = Timer(2, self.capture_image, [code])
+            self.activecaptures[code]['timer'] = Timer(1, self.capture_image, [code])
             self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
 
-    def capture_s3(filename):
+    def capture_s3(self, filename):
         '''Capture image with camera and upload to s3 using given filename'''
         # Create the in-memory stream
         stream = io.BytesIO()
@@ -58,7 +60,7 @@ class Capture:
         s3.Object(self.bucket_name, filename).put(Body=stream) #.upload_fileobj(stream)
         stream.close()
 
-    def capture_file(filename):
+    def capture_file(self, filename):
         self.camera.capture(filename, resize=self.resize)
 
     def stop(self, code):

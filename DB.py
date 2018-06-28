@@ -15,6 +15,10 @@ def logtraffic(ais):
     c.execute("INSERT INTO trafficlog VALUES (%s, %s, %s)", (datetime.datetime.utcnow().isoformat(), ais["mmsi"], json.dumps(ais)))
     conn.commit()
 
+def logcapture(ais):
+    c.execute("INSERT INTO captures VALUES (%s, %s, %s, %s)", (datetime.datetime.utcnow().isoformat(), ais["mmsi"], ais['y'], ais['x']))
+    conn.commit()
+
 def getvessel(mmsi):
     c.execute("SELECT name, details, size, notes FROM vesselinfo WHERE mmsi = %s", (mmsi,))
     val = c.fetchone()
@@ -22,7 +26,7 @@ def getvessel(mmsi):
         return None
     return {
         'name': val[0],
-        'detials': val[1],
+        'details': val[1],
         'size': val[2],
         'notes': val[3]
     }
@@ -41,5 +45,5 @@ def shouldprocess(ais):
     if status == None:
         return [False, True] # Ignore all unknown ships
     identified, ignored, forcecapture = status    
-    ignored = not forcecapture and ignored == True # Forcecapture trumps ignored - if it is set
+    ignored = forcecapture == False and ignored == True # Forcecapture trumps ignored - if it is set
     return [identified, ignored]
