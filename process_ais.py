@@ -38,7 +38,11 @@ class Ais_Processor:
 
     def get_vessel_details(self, mmsi):
         if mmsi not in self.vesseldetails:
-            self.vesseldetails[mmsi] = getvessel(mmsi)
+            vesseldetails = getvessel(mmsi)
+            if vesseldetails:
+                self.vesseldetails[mmsi] = vesseldetails
+            else:
+                return { "name": "", "details": "", "size": "", "notes": "" }
         return self.vesseldetails[mmsi]
 
     def process_ais5(self, ais):
@@ -91,14 +95,14 @@ class Ais_Processor:
             # This is to prevent logging random jumps in GPS position reported by the ships
             # AIS messages are sent every 2 - 10 seconds when underway so this is a wide margin of error
             if now - geofence_last_seen[mmsi] > datetime.timedelta(seconds = 60):
-                print "geofence choke ignore", mmsi, vesseldetails['name'], now - geofence_last_seen[mmsi], "seconds between messages"
+                print mmsi, vesseldetails['name'], 'ignored: True', now - geofence_last_seen[mmsi]
                 geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
                 return 
 
             geofence_last_seen[mmsi] = now
 
             if mmsi not in currently_inside_fence:
-                print str(mmsi), vesseldetails['name'], ' ignored:', str(ignored)
+                print str(mmsi), vesseldetails['name'], 'ignored:', str(ignored)
                 logtraffic(ais)
                 
                 currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi, 'details': vesseldetails} # Log once only when a ship enters the geofence
