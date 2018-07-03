@@ -8,6 +8,8 @@ c = None
 conn = None
 
 def _connect(database):
+    global conn
+    global c
     conn = psycopg2.connect(database)
     c = conn.cursor()
 
