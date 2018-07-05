@@ -8,6 +8,10 @@ import datetime
 import os
 # https://www.raspberrypi.org/documentation/usage/camera/python/README.md
 s3 = boto3.resource('s3')
+client = boto3.resource('lambda')
+
+lambdaarn = 'arn:aws:lambda:us-east-2:807832556430:function:imagesToVideo'
+
 
 class Capture:
     def __init__(self):
@@ -39,8 +43,12 @@ class Capture:
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             print "Capture finished"
             self.activecaptures[code]['timer'].cancel()    
-            del self.activecaptures[code] # Then delete the capture
             # Process images to video (optional?)
+            client.invoke(FunctionName=lambdaarn,
+                             InvocationType='RequestResponse',
+                             Payload=json.dumps({"filenames": self.captureimages[code], "outfile": str(code) + ".avi"}))
+            del self.activecaptures[code] # Then delete the capture
+
         else:
             self.activecaptures[code]['seq'] += 1;
             filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
@@ -80,4 +88,5 @@ class Capture:
          pass
 
 
-
+# Enhancements: Use the RPI capture instead of timer
+# If after dark increase exposure
