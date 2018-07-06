@@ -27,7 +27,7 @@ class Capture:
         self.bucket_name = os.environ['BUCKET']
 
 
-    def start(self, code, captureSeconds=30):
+    def start(self, code, captureSeconds=60):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
