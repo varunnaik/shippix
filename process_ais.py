@@ -49,6 +49,10 @@ class Ais_Processor:
         # http://catb.org/gpsd/AIVDM.html#_type_5_static_and_voyage_related_ais
         if ais['id'] != 5:
             raise ValueError('Not an AIS5 message', ais)
+
+        vesseldetails = self.get_vessel_details(ais['mmsi'])
+        if vesseldetails['name'] != "":
+            return
         
         dim_b = ais['dim_a']
         dim_s = ais['dim_b']
@@ -69,6 +73,7 @@ class Ais_Processor:
             'notes': 'Destination ' + (clean(ais['destination']) or 'Unknown' ) + ', ETA:' + str(ais['eta_day']) + '/' + str(ais['eta_month']),
             'callsign': clean(ais['callsign'])
         }
+
         updatevessel(ais['mmsi'], ignored=ignored, identified=True, fullinfo=shipinfo)
         print "Update vessel", ais['mmsi'], shipinfo['name']
 
