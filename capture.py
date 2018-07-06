@@ -6,6 +6,7 @@ import boto3
 from threading import Timer
 import datetime
 import os
+import json
 # https://www.raspberrypi.org/documentation/usage/camera/python/README.md
 s3 = boto3.resource('s3')
 client = boto3.client('lambda')
