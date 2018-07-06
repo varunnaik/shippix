@@ -10,7 +10,7 @@ import os
 s3 = boto3.resource('s3')
 client = boto3.client('lambda')
 
-lambdaarn = 'arn:aws:lambda:us-east-2:807832556430:function:imagesToVideo'
+lambdaarn = 'arn:aws:lambda:ap-southeast-2:807832556430:function:imagesToVideo'
 
 
 class Capture:
