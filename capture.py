@@ -76,7 +76,7 @@ class Capture:
         '''Stop capture'''
         if code in self.activecaptures:
             print "Capture aborted!"
-            self.activecaptures[code] = False
+            self.activecaptures[code]['capture'] = False
 
     def get_images(self, code):
         if code in self.captureimages:

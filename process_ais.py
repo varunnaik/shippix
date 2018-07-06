@@ -92,10 +92,10 @@ class Ais_Processor:
                 geofence_last_seen[mmsi] = now
                 return 
 
-            # If this is the second time in 60s that the vessel has reported it's in the geofence then process it
+            # If this is the second time in 20s that the vessel has reported it's in the geofence then process it
             # This is to prevent logging random jumps in GPS position reported by the ships
             # AIS messages are sent every 2 - 10 seconds when underway so this is a wide margin of error
-            if now - geofence_last_seen[mmsi] > datetime.timedelta(seconds = 60):
+            if now - geofence_last_seen[mmsi] > datetime.timedelta(seconds = 20):
                 print mmsi, vesseldetails['name'], 'ignored: True', now - geofence_last_seen[mmsi]
                 geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
                 return 
