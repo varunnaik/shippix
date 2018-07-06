@@ -8,7 +8,7 @@ import datetime
 import os
 # https://www.raspberrypi.org/documentation/usage/camera/python/README.md
 s3 = boto3.resource('s3')
-client = boto3.resource('lambda', region_name="ap-southeast-2")
+client = boto3.client('lambda')
 
 lambdaarn = 'arn:aws:lambda:us-east-2:807832556430:function:imagesToVideo'
 
