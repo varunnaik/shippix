@@ -74,7 +74,7 @@ def shouldprocess(ais):
         if status == None:
             return [False, True] # Ignore all unknown ships
         identified, ignored, forcecapture = status    
-        ignored = forcecapture == False and ignored == True # Forcecapture trumps ignored - if it is set
+        ignored = not forcecapture and ignored == True # Forcecapture trumps ignored - if it is set
         return [identified, ignored]
     except psycopg2.InterfaceError as exc:
         _connect(database)

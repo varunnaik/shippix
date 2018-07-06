@@ -44,12 +44,8 @@ class Capture:
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             print "Capture finished"
             self.activecaptures[code]['timer'].cancel()    
-            # Process images to video (optional?)
-            client.invoke(FunctionName=lambdaarn,
-                             InvocationType='RequestResponse',
-                             Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".avi"}))
-            del self.activecaptures[code] # Then delete the capture
-
+            cleanuptimer = Timer(5, self.capture_cleanup, [code])# Delay to ensure files finish uploading
+            cleanuptimer.start()
         else:
             self.activecaptures[code]['seq'] += 1;
             filename = "img/%s_%03d.jpg" % (code, self.activecaptures[code]['seq'])
@@ -58,6 +54,13 @@ class Capture:
             self.activecaptures[code]['timer'] = Timer(1, self.capture_image, [code])
             self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
+
+    def capture_cleanup(code):
+        # Process images to video
+        client.invoke(FunctionName=lambdaarn,
+                         InvocationType='RequestResponse',
+                         Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".avi"}))
+        del self.activecaptures[code] # Then delete the capture
 
     def capture_s3(self, filename):
         '''Capture image with camera and upload to s3 using given filename'''
