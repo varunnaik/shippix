@@ -49,10 +49,6 @@ class Ais_Processor:
         # http://catb.org/gpsd/AIVDM.html#_type_5_static_and_voyage_related_ais
         if ais['id'] != 5:
             raise ValueError('Not an AIS5 message', ais)
-
-        vesseldetails = self.get_vessel_details(ais['mmsi'])
-        if vesseldetails['name'] != "":
-            return
         
         dim_b = ais['dim_a']
         dim_s = ais['dim_b']
