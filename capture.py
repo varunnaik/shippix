@@ -8,7 +8,7 @@ import datetime
 import os
 # https://www.raspberrypi.org/documentation/usage/camera/python/README.md
 s3 = boto3.resource('s3')
-client = boto3.resource('lambda')
+client = boto3.resource('lambda', region_name="ap-southeast-2")
 
 lambdaarn = 'arn:aws:lambda:us-east-2:807832556430:function:imagesToVideo'
 
@@ -27,7 +27,7 @@ class Capture:
         self.bucket_name = os.environ['BUCKET']
 
 
-    def start(self, code, captureSeconds=60):
+    def start(self, code, captureSeconds=90):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
@@ -46,12 +46,12 @@ class Capture:
             # Process images to video (optional?)
             client.invoke(FunctionName=lambdaarn,
                              InvocationType='RequestResponse',
-                             Payload=json.dumps({"filenames": self.captureimages[code], "outfile": str(code) + ".avi"}))
+                             Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".avi"}))
             del self.activecaptures[code] # Then delete the capture
 
         else:
             self.activecaptures[code]['seq'] += 1;
-            filename = "img/%s_%s.jpg" % (code, self.activecaptures[code]['seq'])
+            filename = "img/%s_%03d.jpg" % (code, self.activecaptures[code]['seq'])
             self.capture_s3(filename)
             self.captureimages[code].append(filename)
             self.activecaptures[code]['timer'] = Timer(1, self.capture_image, [code])
