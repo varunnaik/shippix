@@ -55,7 +55,7 @@ class Capture:
             self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
 
-    def capture_cleanup(code):
+    def capture_cleanup(self, code):
         # Process images to video
         client.invoke(FunctionName=lambdaarn,
                          InvocationType='RequestResponse',
