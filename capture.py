@@ -44,14 +44,14 @@ class Capture:
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             print "Capture finished"
             self.activecaptures[code]['timer'].cancel()    
-            cleanuptimer = Timer(5, self.capture_cleanup, [code])# Delay to ensure files finish uploading
+            cleanuptimer = Timer(5, self.capture_cleanup, code)# Delay to ensure files finish uploading
             cleanuptimer.start()
         else:
             self.activecaptures[code]['seq'] += 1;
-            filename = "img/%s_%03d.jpg" % (code, self.activecaptures[code]['seq'])
+            filename = "img/%s_%03d.jpg" % (code, selhttps://c7.alamy.com/comp/E0070P/new-south-wales-police-car-in-palm-beachsydneyaustralia-E0070P.jpgf.activecaptures[code]['seq'])
             self.capture_s3(filename)
             self.captureimages[code].append(filename)
-            self.activecaptures[code]['timer'] = Timer(1, self.capture_image, [code])
+            self.activecaptures[code]['timer'] = Timer(1, self.capture_image, code)
             self.activecaptures[code]['timer'].start()
             print "Capture", self.activecaptures[code]['seq']
 
