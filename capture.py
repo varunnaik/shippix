@@ -44,16 +44,16 @@ class Capture:
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             print "Capture finished"
             self.activecaptures[code]['timer'].cancel()    
-            cleanuptimer = Timer(5, self.capture_cleanup, code)# Delay to ensure files finish uploading
+            cleanuptimer = Timer(5, self.capture_cleanup, str(code))# Delay to ensure files finish uploading
             cleanuptimer.start()
         else:
             self.activecaptures[code]['seq'] += 1;
             filename = "img/%s_%03d.jpg" % (code, self.activecaptures[code]['seq'])
             self.capture_s3(filename)
             self.captureimages[code].append(filename)
-            self.activecaptures[code]['timer'] = Timer(1, self.capture_image, code)
+            self.activecaptures[code]['timer'] = Timer(1, self.capture_image, str(code))
             self.activecaptures[code]['timer'].start()
-            print "Capture", self.activecaptures[code]['seq']
+            print "Capture", code, ":", self.%[code]['seq']
 
     def capture_cleanup(self, code):
         # Process images to video
