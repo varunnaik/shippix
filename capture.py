@@ -40,18 +40,19 @@ class Capture:
 
     def capture_image(self, code):
         '''Capture an image provided the capture has not been stopped'''
+        print code
         if (self.activecaptures[code] and not self.activecaptures[code]['capture']) \
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             print "Capture finished"
             self.activecaptures[code]['timer'].cancel()    
-            cleanuptimer = Timer(5, self.capture_cleanup, str(code))# Delay to ensure files finish uploading
+            cleanuptimer = Timer(5, self.capture_cleanup, [code])# Delay to ensure files finish uploading
             cleanuptimer.start()
         else:
             self.activecaptures[code]['seq'] += 1;
-            filename = "img/%s_%03d.jpg" % (code, self.activecaptures[code]['seq'])
-            self.capture_s3(filename)
+            filename = "%s_%03d.jpg" % (code, self.activecaptures[code]['seq'])
+            self.capture_s3("img/"+filename)
             self.captureimages[code].append(filename)
-            self.activecaptures[code]['timer'] = Timer(1, self.capture_image, str(code))
+            self.activecaptures[code]['timer'] = Timer(1, self.capture_image, [code])
             self.activecaptures[code]['timer'].start()
             print "Capture", code, ":", self.activecaptures[code]['seq']
 
@@ -60,6 +61,7 @@ class Capture:
         client.invoke(FunctionName=lambdaarn,
                          InvocationType='RequestResponse',
                          Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".avi"}))
+        print "Invoke", self.captureimages[code], str(code)
         del self.activecaptures[code] # Then delete the capture
 
     def capture_s3(self, filename):
