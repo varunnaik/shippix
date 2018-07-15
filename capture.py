@@ -53,7 +53,7 @@ class Capture:
             self.captureimages[code].append(filename)
             self.activecaptures[code]['timer'] = Timer(1, self.capture_image, str(code))
             self.activecaptures[code]['timer'].start()
-            print "Capture", code, ":", self.%[code]['seq']
+            print "Capture", code, ":", self.activecaptures[code]['seq']
 
     def capture_cleanup(self, code):
         # Process images to video
