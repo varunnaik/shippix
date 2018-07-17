@@ -112,7 +112,7 @@ class Ais_Processor:
                 print "Attempt capture", mmsi, vesseldetails['name']
                 logcapture(ais)
                 n = datetime.datetime.now()
-                captureid = str(mmsi) + n.strftime('%Y%m%d')
+                captureid = str(mmsi) + n.strftime('%Y%m%d%H%M')
                 self.capture.start(captureid)
                 self.capturesinprogress[mmsi] = captureid
         else:
