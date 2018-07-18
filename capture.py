@@ -5,12 +5,14 @@ import io
 import boto3
 from threading import Timer
 import datetime
+import time
 import os
 import json
 # https://www.raspberrypi.org/documentation/usage/camera/python/README.md
 s3 = boto3.resource('s3')
 client = boto3.client('lambda')
-
+capture_file = 'captures.json'
+capture_file_path = '/var/tmp'
 lambdaarn = 'arn:aws:lambda:ap-southeast-2:807832556430:function:imagesToVideo'
 
 
@@ -26,16 +28,19 @@ class Capture:
         self.resize = (1089,434)
         self.camera.start_preview() #Warm the camera up
         self.bucket_name = os.environ['BUCKET']
+        # Download captures file and cache locally
+        s3.Object(bucketname, capture_file).download_file(capture_file_path + capture_file)
 
 
-    def start(self, code, captureSeconds=90):
+
+    def start(self, code, mmsi, name, captureSeconds=90):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
             return False
         print "Start capture"
         self.captureimages[code] = []
-        self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None }
+        self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None, 'mmsi': mmsi, 'name': name }
         self.capture_image(code)
 
     def capture_image(self, code):
@@ -61,7 +66,7 @@ class Capture:
         client.invoke(FunctionName=lambdaarn,
                          InvocationType='RequestResponse',
                          Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".avi"}))
-        print "Invoke", self.captureimages[code], str(code)
+        store_capture(code, self.activecaptures[code].mmsi, self.activecaptures[code].name)
         del self.activecaptures[code] # Then delete the capture
 
     def capture_s3(self, filename):
@@ -88,11 +93,14 @@ class Capture:
             return self.captureimages[code]
         else:
             return None
- 
-    def delete_images(self, code):
-         # TODO: Delete images on disk and free up disk space
-         pass
 
+    def store_capture(self, code, mmsi, name):
+        with open(capture_file_path + capture_file, "rw") as json_data:
+            d = json.load(json_data)
+            d[int(time.time())] = {"f": code, "m": mmsi, "n": name}
+            json.dump(d, json_data)
+        s3.Object(bucketname, capture_file).upload_file(capture_file_path + capture_file)
+        #https://www.domoticz.com/wiki/Setting_up_a_RAM_drive_on_Raspberry_Pi
 
 # Enhancements: Use the RPI capture instead of timer
 # If after dark increase exposure
