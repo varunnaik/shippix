@@ -95,12 +95,13 @@ class Capture:
             return None
 
     def store_capture(self, code, mmsi, name):
-        with open(capture_file_path + capture_file, "rw") as json_data:
+        with open(capture_file_path + capture_file, "r+") as json_data:
             d = json.load(json_data)
             d[int(time.time())] = {"f": code, "m": mmsi, "n": name}
+            json_data.seek(0)
             json.dump(d, json_data)
+            json_data.truncate()
         s3.Object(self.bucket_name, capture_file).upload_file(capture_file_path + capture_file)
-        #https://www.domoticz.com/wiki/Setting_up_a_RAM_drive_on_Raspberry_Pi
 
 # Enhancements: Use the RPI capture instead of timer
 # If after dark increase exposure
