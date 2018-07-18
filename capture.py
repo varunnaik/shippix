@@ -29,7 +29,7 @@ class Capture:
         self.camera.start_preview() #Warm the camera up
         self.bucket_name = os.environ['BUCKET']
         # Download captures file and cache locally
-        s3.Object(bucketname, capture_file).download_file(capture_file_path + capture_file)
+        s3.Object(self.bucket_name, capture_file).download_file(capture_file_path + capture_file)
 
 
 
@@ -99,7 +99,7 @@ class Capture:
             d = json.load(json_data)
             d[int(time.time())] = {"f": code, "m": mmsi, "n": name}
             json.dump(d, json_data)
-        s3.Object(bucketname, capture_file).upload_file(capture_file_path + capture_file)
+        s3.Object(self.bucket_name, capture_file).upload_file(capture_file_path + capture_file)
         #https://www.domoticz.com/wiki/Setting_up_a_RAM_drive_on_Raspberry_Pi
 
 # Enhancements: Use the RPI capture instead of timer
