@@ -12,7 +12,7 @@ import json
 s3 = boto3.resource('s3')
 client = boto3.client('lambda')
 capture_file = 'captures.json'
-capture_file_path = '/var/tmp'
+capture_file_path = '/var/tmpfs/'
 lambdaarn = 'arn:aws:lambda:ap-southeast-2:807832556430:function:imagesToVideo'
 
 
