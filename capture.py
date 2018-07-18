@@ -66,7 +66,7 @@ class Capture:
         client.invoke(FunctionName=lambdaarn,
                          InvocationType='RequestResponse',
                          Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".avi"}))
-        self.store_capture(code, self.activecaptures[code].mmsi, self.activecaptures[code].name)
+        self.store_capture(code, self.activecaptures[code]['mmsi'], self.activecaptures[code]['name'])
         del self.activecaptures[code] # Then delete the capture
 
     def capture_s3(self, filename):
