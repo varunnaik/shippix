@@ -13,8 +13,7 @@ s3 = boto3.resource('s3')
 client = boto3.client('lambda')
 capture_file = 'captures.json'
 capture_file_path = '/var/tmpfs/'
-lambdaarn = 'arn:aws:lambda:ap-southeast-2:807832556430:function:imagesToVideo'
-
+lambdaarn = os.environ['LAMBDAARN']
 
 class Capture:
     def __init__(self):
@@ -33,7 +32,7 @@ class Capture:
 
 
 
-    def start(self, code, mmsi, name, captureSeconds=90):
+    def start(self, code, mmsi, name, captureSeconds=120):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"

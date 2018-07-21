@@ -34,11 +34,17 @@ def cleanup(filelist, outfilename):
 def lambda_handler(event, context):
 	filelist = event["filelist"]
 	outfilename = event["outfilename"]
+	print "Generating", outfilename
+	print "Downloading", len(filelist), "files from S3"
 	download_files_s3(filelist)
+	print "Download done. Processing video"
 	process_video(outfilename)
 	if path.isfile(_filepath(outfilename)):
+		print "Video generated!"
 		delete_files_s3(filelist)
+		print "Source jpegs deleted from s3."
 		upload_vid_s3(outfilename)
+		print "Video uploaded; job completed."
 		return "Success!"
 	cleanup(filelist, outfilename)
 
