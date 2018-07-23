@@ -39,7 +39,7 @@ class Capture:
             return False
         print "Start capture"
         self.captureimages[code] = []
-        self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None, 'mmsi': mmsi, details: vesseldetails }
+        self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None, 'mmsi': mmsi, 'details': vesseldetails }
         self.capture_image(code)
 
     def capture_image(self, code):
