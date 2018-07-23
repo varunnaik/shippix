@@ -113,7 +113,7 @@ class Ais_Processor:
                 logcapture(ais)
                 n = datetime.datetime.now()
                 captureid = str(mmsi) + n.strftime('%Y%m%d%H%M')
-                self.capture.start(captureid, mmsi, vesseldetails['name'])
+                self.capture.start(captureid, mmsi, vesseldetails)
                 self.capturesinprogress[mmsi] = captureid
         else:
             if mmsi in currently_inside_fence: # When a ship leaves the fenced region mark it as outside

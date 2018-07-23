@@ -32,14 +32,14 @@ class Capture:
 
 
 
-    def start(self, code, mmsi, name, captureSeconds=120):
+    def start(self, code, mmsi, vesseldetails, captureSeconds=180):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
             return False
         print "Start capture"
         self.captureimages[code] = []
-        self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None, 'mmsi': mmsi, 'name': name }
+        self.activecaptures[code] = { 'capture': True, 'end': datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), 'seq': 0, 'timer': None, 'mmsi': mmsi, details: vesseldetails }
         self.capture_image(code)
 
     def capture_image(self, code):
@@ -65,7 +65,7 @@ class Capture:
         client.invoke(FunctionName=lambdaarn,
                          InvocationType='RequestResponse',
                          Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".avi"}))
-        self.store_capture(code, self.activecaptures[code]['mmsi'], self.activecaptures[code]['name'])
+        self.store_capture(code, self.activecaptures[code]['mmsi'], self.activecaptures[code]['details'])
         del self.activecaptures[code] # Then delete the capture
 
     def capture_s3(self, filename):
@@ -93,10 +93,12 @@ class Capture:
         else:
             return None
 
-    def store_capture(self, code, mmsi, name):
+    def store_capture(self, code, mmsi, details):
         with open(capture_file_path + capture_file, "r+") as json_data:
             d = json.load(json_data)
-            d[int(time.time())] = {"f": code, "m": mmsi, "n": name}
+            d['captures'].append(code)
+            if mmsi not in d['info']:
+                d['info'][mmsi] = {"name": details["name"], "desc": details["description"], "size": details["size"]}
             json_data.seek(0)
             json.dump(d, json_data)
             json_data.truncate()
