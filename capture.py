@@ -98,7 +98,7 @@ class Capture:
             d = json.load(json_data)
             d['captures'].append(code)
             if mmsi not in d['info']:
-                d['info'][mmsi] = {"name": details["name"], "desc": details["description"], "size": details["size"]}
+                d['info'][mmsi] = {"name": details["name"], "description": details["details"], "size": details["size"]}
             json_data.seek(0)
             json.dump(d, json_data)
             json_data.truncate()
