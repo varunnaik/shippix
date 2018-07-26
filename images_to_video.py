@@ -21,10 +21,10 @@ def process_video(outfilename):
 	ffmpeg_path = path.dirname(path.realpath(__file__)) + "/bin/ffmpeg"
 	chdir('/tmp')
 	#call([ffmpeg_path, "-framerate", "8", "-pattern_type", "glob", "-i", "'*.jpg'", _filepath(outfilename)])
-	call(ffmpeg_path + " -framerate 8 -pattern_type glob -i '*.jpg' " + _filepath(outfilename), shell=True)
+	call(ffmpeg_path + ' -framerate 8 -pattern_type glob -i "*.jpg" -vcodec h264 -acodec aac -strict -2 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ' + _filepath(outfilename), shell=True)
 
 def upload_vid_s3(outfilename):
-	s3.Object(bucketname, outfilename).upload_file(_filepath(outfilename))
+	s3.Object(bucketname, outfilename).upload_file(_filepath(outfilename), ExtraArgs={'ACL':'public-read'})
 
 def cleanup(filelist, outfilename):
 	remove(_filepath(outfilename))
@@ -41,10 +41,11 @@ def lambda_handler(event, context):
 	process_video(outfilename)
 	if path.isfile(_filepath(outfilename)):
 		print "Video generated!"
+		upload_vid_s3(outfilename)
+		print "Video uploaded;"
 		delete_files_s3(filelist)
 		print "Source jpegs deleted from s3."
-		upload_vid_s3(outfilename)
-		print "Video uploaded; job completed."
+		print "Job completed."
 		return "Success!"
 	cleanup(filelist, outfilename)
 

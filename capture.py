@@ -64,7 +64,7 @@ class Capture:
         # Process images to video
         client.invoke(FunctionName=lambdaarn,
                          InvocationType='RequestResponse',
-                         Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".avi"}))
+                         Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}))
         self.store_capture(code, self.activecaptures[code]['mmsi'], self.activecaptures[code]['details'])
         del self.activecaptures[code] # Then delete the capture
 
@@ -102,7 +102,7 @@ class Capture:
             json_data.seek(0)
             json.dump(d, json_data)
             json_data.truncate()
-        s3.Object(self.bucket_name, capture_file).upload_file(capture_file_path + capture_file)
+        s3.Object(self.bucket_name, capture_file).upload_file(capture_file_path + capture_file, ExtraArgs={'ACL':'public-read'})
 
 # Enhancements: Use the RPI capture instead of timer
 # If after dark increase exposure
