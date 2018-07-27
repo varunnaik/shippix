@@ -3,6 +3,7 @@ from itushipinfo import itu_identify_vessel
 from geofence import Geofence
 from capture import Capture
 import datetime
+import time
 import requests
 from ais_classifications import classifications
 
@@ -112,7 +113,7 @@ class Ais_Processor:
                 print "Attempt capture", mmsi, vesseldetails['name']
                 logcapture(ais)
                 n = datetime.datetime.now()
-                captureid = str(mmsi) + n.strftime('%Y%m%d%H%M')
+                captureid = str(mmsi) + str(int(time.time()))
                 self.capture.start(captureid, mmsi, vesseldetails)
                 self.capturesinprogress[mmsi] = captureid
         else:

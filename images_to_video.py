@@ -21,7 +21,7 @@ def process_video(outfilename):
 	ffmpeg_path = path.dirname(path.realpath(__file__)) + "/bin/ffmpeg"
 	chdir('/tmp')
 	#call([ffmpeg_path, "-framerate", "8", "-pattern_type", "glob", "-i", "'*.jpg'", _filepath(outfilename)])
-	call(ffmpeg_path + ' -framerate 8 -pattern_type glob -i "*.jpg" -vcodec h264 -acodec aac -strict -2 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ' + _filepath(outfilename), shell=True)
+	call(ffmpeg_path + ' -framerate 8 -pattern_type glob -i "*.jpg" -vcodec h264 -acodec aac -strict -2 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -y ' + _filepath(outfilename), shell=True)
 
 def upload_vid_s3(outfilename):
 	s3.Object(bucketname, outfilename).upload_file(_filepath(outfilename), ExtraArgs={'ACL':'public-read'})
