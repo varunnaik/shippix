@@ -8,9 +8,11 @@ import datetime
 import time
 import os
 import json
+import botocore.config
 # https://www.raspberrypi.org/documentation/usage/camera/python/README.md
+cfg = botocore.config.Config(retries={'max_attempts': 0})
 s3 = boto3.resource('s3')
-client = boto3.client('lambda')
+client = boto3.client('lambda', config=cfg)
 capture_file = 'captures.json'
 capture_file_path = '/var/tmpfs/'
 lambdaarn = os.environ['LAMBDAARN']
@@ -49,7 +51,7 @@ class Capture:
                 or self.activecaptures[code]['end'] <= datetime.datetime.now(): # If this capture is finished
             print "Capture finished"
             self.activecaptures[code]['timer'].cancel()    
-            cleanuptimer = Timer(5, self.capture_cleanup, [code])# Delay to ensure files finish uploading
+            cleanuptimer = Timer(15, self.capture_cleanup, [code])# Delay to ensure files finish uploading
             cleanuptimer.start()
         else:
             self.activecaptures[code]['seq'] += 1;
@@ -62,6 +64,7 @@ class Capture:
 
     def capture_cleanup(self, code):
         # Process images to video
+        print "Invoke lambda"
         client.invoke(FunctionName=lambdaarn,
                          InvocationType='RequestResponse',
                          Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}))
