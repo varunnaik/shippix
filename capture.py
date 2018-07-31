@@ -34,7 +34,7 @@ class Capture:
 
 
 
-    def start(self, code, mmsi, vesseldetails, captureSeconds=180):
+    def start(self, code, mmsi, vesseldetails, captureSeconds=140):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
@@ -65,11 +65,12 @@ class Capture:
     def capture_cleanup(self, code):
         # Process images to video
         print "Invoke lambda"
+        self.store_capture(code, self.activecaptures[code]['mmsi'], self.activecaptures[code]['details'])
+        del self.activecaptures[code] # Then delete the capture
         client.invoke(FunctionName=lambdaarn,
                          InvocationType='RequestResponse',
                          Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}))
-        self.store_capture(code, self.activecaptures[code]['mmsi'], self.activecaptures[code]['details'])
-        del self.activecaptures[code] # Then delete the capture
+
 
     def capture_s3(self, filename):
         '''Capture image with camera and upload to s3 using given filename'''
