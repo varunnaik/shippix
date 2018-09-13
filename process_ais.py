@@ -10,9 +10,6 @@ from ais_classifications import classifications
 currently_inside_fence = {}
 geofence_last_seen = {}
 
-# Main datastore of all stored ship details
-shipinfo = {}
-
 def clean(field):
     return field.strip().replace('@', '')
 
@@ -42,11 +39,7 @@ class Ais_Processor:
 
     def get_vessel_details(self, mmsi):
         if mmsi not in self.vesseldetails:
-            vesseldetails = shipinfo[mmsi]
-            if vesseldetails:
-                self.vesseldetails[mmsi] = vesseldetails
-            else:
-                return { "name": "", "details": "", "size": "", "notes": "" }
+            return { "name": "", "details": "", "size": "", "notes": "", "identified": False, "ignored": False }
         return self.vesseldetails[mmsi]
 
     def process_ais5(self, ais):
@@ -63,7 +56,7 @@ class Ais_Processor:
         if dim_b + dim_s > 80: # Vessel is > 80m long, excluding ferries, tugs and smaller craft
             ignored = False
 
-        shipdetails = {
+        vesseldetails = {
             'name': clean(ais['name']),
             'flag': '',
             'gross_tonnage': '',
@@ -73,23 +66,21 @@ class Ais_Processor:
             'notes': 'Destination ' + (clean(ais['destination']) or 'Unknown' ) + ', ETA:' + str(ais['eta_day']) + '/' + str(ais['eta_month']),
             'callsign': clean(ais['callsign']),
         }
-        shipdetails['mmsi'] = ais['mmsi']
-        shipdetails['ignored'] = ignored
-        shipdetails['identified'] = True
-        shipinfo[ais['mmsi']] = shipdetails
+        vesseldetails['mmsi'] = ais['mmsi']
+        vesseldetails['ignored'] = ignored
+        vesseldetails['identified'] = True
+        self.vesseldetails[ais['mmsi']] = vesseldetails
 
-        print "Update vessel", ais['mmsi'], shipinfo['name']
+        print "Update vessel", ais['mmsi'], vesseldetails['name']
 
     def process(self, ais):
         mmsi = ais['mmsi']
-        if shipinfo[mmsi]:
-            identified = shipinfo[mmsi]['identified']
-            ignored = shipinfo[mmsi]['ignored']
-        else:
-            identified = ignored = False
-        
+
         vesseldetails = self.get_vessel_details(mmsi)
 
+        identified = vesseldetails['identified']
+        ignored = vesseldetails['ignored']
+        
         if mmsi in self.capturesinprogress: # If already capturing this vessel
             if not self.ingeofence(ais): # If vessel has left the geofence                
                 self.capture.stop(self.capturesinprogress[mmsi])
