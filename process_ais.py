@@ -39,7 +39,7 @@ class Ais_Processor:
 
     def get_vessel_details(self, mmsi):
         if mmsi not in self.vesseldetails:
-            return { "name": "", "details": "", "size": "", "notes": "", "identified": False, "ignored": False }
+            return { "name": "", "details": "", "size": "", "notes": "", "identified": False, "ignored": True }
         return self.vesseldetails[mmsi]
 
     def process_ais5(self, ais):
