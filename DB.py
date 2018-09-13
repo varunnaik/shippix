@@ -13,7 +13,7 @@ def _connect(database):
     conn = psycopg2.connect(database)
     c = conn.cursor()
 
-_connect(database)
+#_connect(database)
 
 def logais(ais):
     try:

@@ -10,6 +10,9 @@ from ais_classifications import classifications
 currently_inside_fence = {}
 geofence_last_seen = {}
 
+# Main datastore of all stored ship details
+shipinfo = {}
+
 def clean(field):
     return field.strip().replace('@', '')
 
@@ -39,7 +42,7 @@ class Ais_Processor:
 
     def get_vessel_details(self, mmsi):
         if mmsi not in self.vesseldetails:
-            vesseldetails = getvessel(mmsi)
+            vesseldetails = shipinfo[mmsi]
             if vesseldetails:
                 self.vesseldetails[mmsi] = vesseldetails
             else:
@@ -60,7 +63,7 @@ class Ais_Processor:
         if dim_b + dim_s > 80: # Vessel is > 80m long, excluding ferries, tugs and smaller craft
             ignored = False
 
-        shipinfo = {
+        shipdetails = {
             'name': clean(ais['name']),
             'flag': '',
             'gross_tonnage': '',
@@ -68,15 +71,23 @@ class Ais_Processor:
             'details': classifications[str(ais['type_and_cargo'])],
             'size': str(dim_b+dim_s) + 'm x ' + str(dim_p+dim_sb) + 'm',
             'notes': 'Destination ' + (clean(ais['destination']) or 'Unknown' ) + ', ETA:' + str(ais['eta_day']) + '/' + str(ais['eta_month']),
-            'callsign': clean(ais['callsign'])
+            'callsign': clean(ais['callsign']),
         }
+        shipdetails['mmsi'] = ais['mmsi']
+        shipdetails['ignored'] = ignored
+        shipdetails['identified'] = True
+        shipinfo[ais['mmsi']] = shipdetails
 
-        updatevessel(ais['mmsi'], ignored=ignored, identified=True, fullinfo=shipinfo)
         print "Update vessel", ais['mmsi'], shipinfo['name']
 
     def process(self, ais):
-        identified, ignored = shouldprocess(ais)
         mmsi = ais['mmsi']
+        if shipinfo[mmsi]:
+            identified = shipinfo[mmsi]['identified']
+            ignored = shipinfo[mmsi]['ignored']
+        else:
+            identified = ignored = False
+        
         vesseldetails = self.get_vessel_details(mmsi)
 
         if mmsi in self.capturesinprogress: # If already capturing this vessel
@@ -105,13 +116,12 @@ class Ais_Processor:
 
             if mmsi not in currently_inside_fence:
                 print str(mmsi), vesseldetails['name'], 'ignored:', str(ignored)
-                logtraffic(ais)
                 
                 currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi, 'details': vesseldetails} # Log once only when a ship enters the geofence
                 #firebase.add_document(currently_inside_fence[mmsi])
             if not ignored:
                 print "Attempt capture", mmsi, vesseldetails['name']
-                logcapture(ais)
+
                 n = datetime.datetime.now()
                 captureid = str(mmsi) + str(int(time.time()))
                 self.capture.start(captureid, mmsi, vesseldetails)
