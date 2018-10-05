@@ -34,7 +34,7 @@ class Capture:
 
 
 
-    def start(self, code, mmsi, vesseldetails, captureSeconds=180):
+    def start(self, code, mmsi, vesseldetails, captureSeconds=200):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
