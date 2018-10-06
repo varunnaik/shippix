@@ -80,7 +80,7 @@ class Ais_Processor:
     def process(self, ais):
         mmsi = ais['mmsi']
 
-        vesseldetails = self.get_vessel_detailCs(mmsi)
+        vesseldetails = self.get_vessel_details(mmsi)
 
         identified = vesseldetails['identified']
         ignored = vesseldetails['ignored']
