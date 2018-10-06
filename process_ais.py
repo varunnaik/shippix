@@ -5,10 +5,12 @@ from capture import Capture
 import datetime
 import time
 import requests
+import json
 from ais_classifications import classifications
 
 currently_inside_fence = {}
 geofence_last_seen = {}
+persist_file = 'vesseldetails.json'
 
 def clean(field):
     return field.strip().replace('@', '')
@@ -18,24 +20,22 @@ class Ais_Processor:
         self.geofence = Geofence()
         self.capture = Capture()
         self.capturesinprogress={}
-        self.vesseldetails = {}
-    
-    def identifyvessel(self, ais):
-        shipinfo = itu_identify_vessel(ais)
-        if shipinfo:
-            updatevessel(ais['mmsi'], ignored=False, identified=True, fullinfo=shipinfo)
-        else:
-            updatevessel(ais['mmsi'], ignored=True, identified=False, fullinfo=None)
+        self.vesseldetails = self.load_vessel_details()
 
     def ingeofence(self, ais):
         if 'x' not in ais or 'y' not in ais: return False
         return self.geofence.point_in_fence(ais['y'], ais['x'])
 
-    def update_firebase(self, capturedata, imagelist):
-        urls = firebase.upload_images(imagelist)
-        capturedata['urls'] = urls
-        firebase.add_capture(capturedata)
-        # TODO: Delete imagelist
+    def load_vessel_details(self):
+        with open(vesseldetails_persist_file, "r") as json_data:
+            try:
+                return json.load(json_data)
+            except ValueError:
+                return {}
+
+    def persist_vessel_details(self):
+        with open(vesseldetails_persist_file, "w") as vesseldetails_file:
+            json.dump(self.vesseldetails, vesseldetails_file)
 
     def get_vessel_details(self, mmsi):
         if mmsi not in self.vesseldetails:
@@ -56,6 +56,9 @@ class Ais_Processor:
         if dim_b + dim_s > 80: # Vessel is > 80m long, excluding ferries, tugs and smaller craft
             ignored = False
 
+        if ais['mmsi'] in self.vesseldetails:
+            return
+
         vesseldetails = {
             'name': clean(ais['name']),
             'flag': '',
@@ -72,11 +75,12 @@ class Ais_Processor:
         self.vesseldetails[ais['mmsi']] = vesseldetails
 
         print "Update vessel", ais['mmsi'], vesseldetails['name']
+        self.persist_vessel_details()
 
     def process(self, ais):
         mmsi = ais['mmsi']
 
-        vesseldetails = self.get_vessel_details(mmsi)
+        vesseldetails = self.get_vessel_detailCs(mmsi)
 
         identified = vesseldetails['identified']
         ignored = vesseldetails['ignored']
