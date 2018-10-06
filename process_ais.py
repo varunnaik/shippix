@@ -10,7 +10,7 @@ from ais_classifications import classifications
 
 currently_inside_fence = {}
 geofence_last_seen = {}
-persist_file = 'vesseldetails.json'
+vesseldetails_persist_file = 'vesseldetails.json'
 
 def clean(field):
     return field.strip().replace('@', '')
