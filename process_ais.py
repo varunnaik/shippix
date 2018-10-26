@@ -21,6 +21,7 @@ class Ais_Processor:
         self.capture = Capture()
         self.capturesinprogress={}
         self.vesseldetails = self.load_vessel_details()
+        print "Loaded", len(self.vesseldetails.keys()), "Vessels"
 
     def ingeofence(self, ais):
         if 'x' not in ais or 'y' not in ais: return False
@@ -102,10 +103,10 @@ class Ais_Processor:
             # If this is the second time in 30s that the vessel has reported it's in the geofence then process it
             # This is to prevent logging random jumps in GPS position reported by the ships
             # AIS messages are sent every 2 - 10 seconds when underway so this is a wide margin of error
-            if now - geofence_last_seen[mmsi] > datetime.timedelta(seconds = 30):
-                print mmsi, vesseldetails['name'], 'ignored: True', now - geofence_last_seen[mmsi]
-                geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
-                return 
+            # if now - geofence_last_seen[mmsi] > datetime.timedelta(seconds = 30):
+            #     print mmsi, vesseldetails['name'], 'ignored: True', now - geofence_last_seen[mmsi]
+            #     geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
+            #     return 
 
             geofence_last_seen[mmsi] = now
 
@@ -113,7 +114,6 @@ class Ais_Processor:
                 print str(mmsi), vesseldetails['name'], 'ignored:', str(ignored)
                 
                 currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi, 'details': vesseldetails} # Log once only when a ship enters the geofence
-                #firebase.add_document(currently_inside_fence[mmsi])
             if not ignored:
                 print "Attempt capture", mmsi, vesseldetails['name']
 
