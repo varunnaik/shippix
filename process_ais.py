@@ -39,6 +39,7 @@ class Ais_Processor:
             json.dump(self.vesseldetails, vesseldetails_file)
 
     def get_vessel_details(self, mmsi):
+        mmsi = str(mmsi)
         if mmsi not in self.vesseldetails:
             return { "name": "", "details": "", "size": "", "notes": "", "identified": False, "ignored": True }
         return self.vesseldetails[mmsi]
