@@ -112,7 +112,7 @@ class Ais_Processor:
             geofence_last_seen[mmsi] = now
 
             if mmsi not in currently_inside_fence:
-                print time.strftime('%H:%M'), ":", str(mmsi), vesseldetails['name'], 'ignored:', str(ignored)
+                print time.strftime('%H:%M'), ":", str(mmsi), " : Ignored :" if ignored else "", vesseldetails['name'], 'ignored:', str(ignored)
                 
                 currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi, 'details': vesseldetails} # Log once only when a ship enters the geofence
             if not ignored:
