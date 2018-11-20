@@ -74,7 +74,7 @@ class Ais_Processor:
         vesseldetails['mmsi'] = ais['mmsi']
         vesseldetails['ignored'] = ignored
         vesseldetails['identified'] = True
-        self.vesseldetails[ais['mmsi']] = vesseldetails
+        self.vesseldetails[str(ais['mmsi'])] = vesseldetails
 
         print "Update vessel", ais['mmsi'], vesseldetails['name']
         self.persist_vessel_details()
