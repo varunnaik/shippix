@@ -21,32 +21,33 @@ class Capture:
     def __init__(self):
         self.camera = picamera.PiCamera()
         self.camera.rotation=270
-        self.camera.resolution=(3280, 2464)#(1809, 1017)
-        self.camera.sharpness=45
-        self.camera.zoom = (0.10714285714285714, 0.29024390243902437, 0.2792207792207792, 0.526219512195122)
+        self.camera.resolution=(1920,1080)# Max = (3280, 2464)
+        self.camera.sharpness=50#-100 to +100, 0 = default
+        self.camera.zoom = (0.149, 0.162, 0.728, 0.803)
         self.activecaptures = {}
         self.captureimages = {}
         self.resize = (1089,434)
         self.camera.start_preview() #Warm the camera up
         self.bucket_name = os.environ["BUCKET"]
+        self.last_capture = {"filename": "", "time": None}
         # Download captures file and cache locally
         s3.Object(self.bucket_name, capture_file).download_file(capture_file_path + capture_file)
 
+    def get_last_capture(self):
+        return self.last_capture
 
-
-    def start(self, code, mmsi, vesseldetails, captureSeconds=220):
+    def start(self, code, mmsi, details, captureSeconds=230):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
             return False
         print "Start capture"
         self.captureimages[code] = []
-        self.activecaptures[code] = { "capture": True, "end": datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), "seq": 0, "timer": None, "mmsi": mmsi, "details": vesseldetails }
+        self.activecaptures[code] = { "capture": True, "end": datetime.datetime.now() + datetime.timedelta(seconds = captureSeconds), "seq": 0, "timer": None, "mmsi": mmsi, "details": details }
         self.capture_image(code)
 
     def capture_image(self, code):
         '''Capture an image provided the capture has not been stopped'''
-        print code
         if (self.activecaptures[code] and not self.activecaptures[code]["capture"]) \
                 or self.activecaptures[code]["end"] <= datetime.datetime.now(): # If this capture is finished
             print "Capture finished"
@@ -55,7 +56,7 @@ class Capture:
             cleanuptimer.start()
         else:
             self.activecaptures[code]["seq"] += 1
-            filename = "%s_%03d.jpg" % (code, self.activecaptures[code]["seq"])
+            filename = "%s_%04d.jpg" % (code, self.activecaptures[code]["seq"])
             self.capture_s3("img/"+filename)
             self.captureimages[code].append(filename)
             self.activecaptures[code]["timer"] = Timer(1, self.capture_image, [code])
@@ -68,9 +69,18 @@ class Capture:
         self.store_capture(code, self.activecaptures[code]["mmsi"], self.activecaptures[code]["details"])
         del self.activecaptures[code] # Then delete the capture
         client.invoke(FunctionName=lambdaarn,
-                         InvocationType="RequestResponse",
+                         InvocationType="Event",
                          Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}))
 
+    def reprocess_capture(self, code):
+        if code in self.captureimages:
+            client.invoke(FunctionName=lambdaarn,
+                         InvocationType="Event",
+                         Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}))
+
+    def store_snapshot(self):
+        capture_s3(self, snapshot)
+        return self.last_capture
 
     def capture_s3(self, filename):
         '''Capture image with camera and upload to s3 using given filename'''
@@ -81,6 +91,8 @@ class Capture:
         stream.seek(0)
         s3.Object(self.bucket_name, filename).put(Body=stream) #.upload_fileobj(stream)
         stream.close()
+        self.last_capture["filename"] = filename
+        self.last_capture["time"] = int(time.time())
 
     def capture_file(self, filename):
         self.camera.capture(filename, resize=self.resize)
@@ -100,9 +112,12 @@ class Capture:
     def store_capture(self, code, mmsi, details):
         with open(capture_file_path + capture_file, "r+") as json_data:
             d = json.load(json_data)
-            d["captures"].append(code)
-            if mmsi not in d["info"] and details["name"]:
-                d["info"][mmsi] = {"name": details["name"], "description": details["details"], "size": details["size"]}
+            if (details["specialcapture"]):
+                d["specialcaptures"].append({"code": code, "details": "details"})
+            else:
+                d["captures"].append(code)
+                if mmsi not in d["info"] and details["name"]:
+                    d["info"][mmsi] = {"name": details["name"], "description": details["details"], "size": details["size"]}
             json_data.seek(0)
             json.dump(d, json_data)
             json_data.truncate()
