@@ -86,7 +86,7 @@ class Capture:
         '''Capture image with camera and upload to s3 using given filename'''
         # Create the in-memory stream
         stream = io.BytesIO()
-        self.camera.capture(stream, format="jpeg", resize=self.resize)
+        self.camera.capture(stream, format="jpeg")
         # "Rewind" the stream to the beginning so we can read its content
         stream.seek(0)
         s3.Object(self.bucket_name, filename).put(Body=stream) #.upload_fileobj(stream)
@@ -95,7 +95,7 @@ class Capture:
         self.last_capture["time"] = int(time.time())
 
     def capture_file(self, filename):
-        self.camera.capture(filename, resize=self.resize)
+        self.camera.capture(filename)
 
     def stop(self, code):
         '''Stop capture'''
