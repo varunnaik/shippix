@@ -112,7 +112,7 @@ class Capture:
     def store_capture(self, code, mmsi, details):
         with open(capture_file_path + capture_file, "r+") as json_data:
             d = json.load(json_data)
-            if (details["specialcapture"]):
+            if "specialcapture" in details:
                 details["end"] = str(int(time.time()))
                 d["specialcaptures"].append({"code": code, "details": details})
             else:
