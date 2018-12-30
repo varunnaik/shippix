@@ -113,7 +113,8 @@ class Capture:
         with open(capture_file_path + capture_file, "r+") as json_data:
             d = json.load(json_data)
             if (details["specialcapture"]):
-                d["specialcaptures"].append({"code": code, "details": "details"})
+                details["end"] = str(int(time.time()))
+                d["specialcaptures"].append({"code": code, "details": details})
             else:
                 d["captures"].append(code)
                 if mmsi not in d["info"] and details["name"]:
