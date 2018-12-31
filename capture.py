@@ -67,16 +67,22 @@ class Capture:
         # Process images to video
         print "Invoke lambda"
         self.store_capture(code, self.activecaptures[code]["mmsi"], self.activecaptures[code]["details"])
+        lambdaparams = {"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}
+        if "specialcapture" in self.activecaptures[code]["details"]:
+            lambdaparams["preservesource"] = True
         del self.activecaptures[code] # Then delete the capture
         client.invoke(FunctionName=lambdaarn,
                          InvocationType="Event",
-                         Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}))
+                         Payload=json.dumps(lambdaparams))
 
     def reprocess_capture(self, code):
         if code in self.captureimages:
+            lambdaparams = {"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}
+            if "specialcapture" in self.activecaptures[code]["details"]:
+                lambdaparams["preservesource"] = True
             client.invoke(FunctionName=lambdaarn,
                          InvocationType="Event",
-                         Payload=json.dumps({"filelist": self.captureimages[code], "outfilename": str(code) + ".mp4"}))
+                         Payload=json.dumps(lambdaparams))
 
     def store_snapshot(self):
         capture_s3(self, snapshot)
