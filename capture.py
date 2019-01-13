@@ -36,7 +36,7 @@ class Capture:
     def get_last_capture(self):
         return self.last_capture
 
-    def start(self, code, mmsi, details, captureSeconds=280):
+    def start(self, code, mmsi, details, captureSeconds=270):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
@@ -58,7 +58,7 @@ class Capture:
             self.activecaptures[code]["seq"] += 1
             filename = "%s_%04d.jpg" % (code, self.activecaptures[code]["seq"])
             self.captureimages[code].append(filename)
-            self.activecaptures[code]["timer"] = Timer(1.5, self.capture_image, [code])
+            self.activecaptures[code]["timer"] = Timer(2, self.capture_image, [code])
             self.activecaptures[code]["timer"].start()
             self.capture_s3("img/"+filename)
             print "Capture", code, ":", self.activecaptures[code]["seq"]
