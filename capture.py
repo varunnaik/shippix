@@ -36,7 +36,7 @@ class Capture:
     def get_last_capture(self):
         return self.last_capture
 
-    def start(self, code, mmsi, details, captureSeconds=230):
+    def start(self, code, mmsi, details, captureSeconds=280):
         '''Given an arbitrary code, captures images with that codename till told to stop'''
         if code in self.activecaptures:
             print "Already capturing!"
