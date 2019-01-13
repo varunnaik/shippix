@@ -56,12 +56,13 @@ class Capture:
             cleanuptimer.start()
         else:
             self.activecaptures[code]["seq"] += 1
+            cur_seq = self.activecaptures[code]["seq"]
             filename = "%s_%04d.jpg" % (code, self.activecaptures[code]["seq"])
             self.captureimages[code].append(filename)
             self.activecaptures[code]["timer"] = Timer(2, self.capture_image, [code])
             self.activecaptures[code]["timer"].start()
             self.capture_s3("img/"+filename)
-            print "Capture", code, ":", self.activecaptures[code]["seq"]
+            print "Capture", code, ":", cur_seq
 
     def capture_cleanup(self, code):
         # Process images to video
