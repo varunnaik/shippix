@@ -30,7 +30,7 @@ class Capture:
         self.camera.start_preview() #Warm the camera up
         self.bucket_name = os.environ["BUCKET"]
         self.last_capture = {"filename": "", "time": None}
-        # Download captures file and cache locally
+        # Download captures file and cache locallycd procd 
         s3.Object(self.bucket_name, capture_file).download_file(capture_file_path + capture_file)
 
     def get_last_capture(self):
@@ -57,10 +57,10 @@ class Capture:
         else:
             self.activecaptures[code]["seq"] += 1
             filename = "%s_%04d.jpg" % (code, self.activecaptures[code]["seq"])
-            self.capture_s3("img/"+filename)
             self.captureimages[code].append(filename)
-            self.activecaptures[code]["timer"] = Timer(1, self.capture_image, [code])
+            self.activecaptures[code]["timer"] = Timer(1.5, self.capture_image, [code])
             self.activecaptures[code]["timer"].start()
+            self.capture_s3("img/"+filename)
             print "Capture", code, ":", self.activecaptures[code]["seq"]
 
     def capture_cleanup(self, code):
