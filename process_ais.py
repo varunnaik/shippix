@@ -1,4 +1,3 @@
-from DB import *
 from itushipinfo import itu_identify_vessel
 from geofence import Geofence
 from capture import Capture
@@ -91,8 +90,6 @@ class Ais_Processor:
             if not self.ingeofence(ais): # If vessel has left the geofence                
                 #self.capture.stop(self.capturesinprogress[mmsi])
                 images = self.capture.get_images(self.capturesinprogress[mmsi])
-                #print "Imagelist to Firebase", images
-                #self.update_firebase(currently_inside_fence[mmsi], images)
                 del self.capturesinprogress[mmsi]
                 del currently_inside_fence[mmsi]
         elif self.ingeofence(ais):            
@@ -100,14 +97,6 @@ class Ais_Processor:
             if mmsi not in geofence_last_seen:
                 geofence_last_seen[mmsi] = now
                 return 
-
-            # If this is the second time in 30s that the vessel has reported it's in the geofence then process it
-            # This is to prevent logging random jumps in GPS position reported by the ships
-            # AIS messages are sent every 2 - 10 seconds when underway so this is a wide margin of error
-            # if now - geofence_last_seen[mmsi] > datetime.timedelta(seconds = 30):
-            #     print mmsi, vesseldetails['name'], 'ignored: True', now - geofence_last_seen[mmsi]
-            #     geofence_last_seen[mmsi] = now # Need two messages in quick succession or we ignore it
-            #     return 
 
             geofence_last_seen[mmsi] = now
 
