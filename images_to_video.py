@@ -20,9 +20,9 @@ def delete_files_s3(filelist):
 
 def process_video(outfilename):
 	ffmpeg_path = path.dirname(path.realpath(__file__)) + "/bin/ffmpeg"
-	chdir('/tmp')
+	chdir('/tmp/')
 	# -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2"
-	call(ffmpeg_path + ' -framerate 10 -pattern_type glob -i "*.jpg" -vcodec h264 -an -y ' + _filepath(outfilename), shell=True)
+	call(ffmpeg_path + ' -framerate 16 -pattern_type glob -i "*.jpg" -crf 24 -vcodec h264 -an -y ' + _filepath(outfilename), shell=True)
 
 def upload_vid_s3(outfilename):
 	s3.Object(bucketname, 'video/'+outfilename).upload_file(_filepath(outfilename), ExtraArgs={'ACL':'public-read'})
@@ -34,14 +34,31 @@ def cleanup(filelist, outfilename):
 	remove(_filepath(outfilename))
 	for filename in filelist:
 		remove(_filepath(filename))
+
+def getfiles(code):
+	files = []
+	for object_summary in s3.Bucket(bucketname).objects.filter(MaxKeys=5000,Prefix='img/'+code+'_'):
+		key = object_summary.key.replace("img/","")
+		try:
+			s3.Object(bucketname, bucketdir + key).download_file(_filepath(key))
+		except:
+			print("Tried to get", bucketdir + key, "from", bucketname, "but this did not work")
+			raise
+		files.append(key)
+	return sorted(files)
  
 def lambda_handler(event, context):
-	filelist = event["filelist"]
+	filelist = None
 	outfilename = event["outfilename"]
-	print "Generating", outfilename
-	print "Downloading", len(filelist), "files from S3"
-	print "Disk contains", listdir('/tmp/')
-	download_files_s3(filelist)
+	if "code" in event:
+		print "Generating for code", event["code"]
+		filelist = getfiles(event["code"])
+		print "Downloaded ", len(filelist), "files"
+	else:
+		filelist = event["filelist"]		
+		print "Generating", outfilename
+		print "Downloading", len(filelist), "files from S3"
+		download_files_s3(filelist)
 	print "Download done. Processing video"
 	process_video(outfilename)
 	if path.isfile(_filepath(outfilename)) and stat(_filepath(outfilename)).st_size > 100:
