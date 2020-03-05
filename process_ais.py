@@ -40,7 +40,8 @@ class Ais_Processor:
     def get_vessel_details(self, mmsi):
         mmsi = str(mmsi)
         if mmsi not in self.vesseldetails:
-            return { "name": "", "details": "", "size": "", "notes": "", "identified": False, "ignored": True }
+            self.vesseldetails[mmsi] = { "name": "", "details": "", "size": "", "notes": "", "identified": False, "ignored": True }
+            self.persist_vessel_details()
         return self.vesseldetails[mmsi]
 
     def process_ais5(self, ais):
@@ -57,7 +58,7 @@ class Ais_Processor:
         if dim_b + dim_s > 80: # Vessel is > 80m long, excluding ferries, tugs and smaller craft
             ignored = False
 
-        if str(ais['mmsi']) in self.vesseldetails:
+        if str(ais['mmsi']) in self.vesseldetails and self.vesseldetails[ais['mmsi']].identified == True:
             return
 
         vesseldetails = {
@@ -101,7 +102,7 @@ class Ais_Processor:
             geofence_last_seen[mmsi] = now
 
             if mmsi not in currently_inside_fence:
-                print time.strftime('%H:%M'), ":", str(mmsi), " : Ignored :" if ignored else "", vesseldetails['name']
+                print time.strftime('%d/$m %H:%M'), ":", str(mmsi), " : Ignored :" if ignored else "", vesseldetails['name']
                 
                 currently_inside_fence[mmsi] = {'date': u''+now.isoformat(), 'mmsi': mmsi, 'details': vesseldetails} # Log once only when a ship enters the geofence
             if not ignored:
