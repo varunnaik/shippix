@@ -58,7 +58,7 @@ class Ais_Processor:
         if dim_b + dim_s > 80: # Vessel is > 80m long, excluding ferries, tugs and smaller craft
             ignored = False
 
-        if str(ais['mmsi']) in self.vesseldetails and self.vesseldetails[ais['mmsi']].identified == True:
+        if str(ais['mmsi']) in self.vesseldetails and self.vesseldetails[str(ais['mmsi'])].identified == True:
             return
 
         vesseldetails = {
