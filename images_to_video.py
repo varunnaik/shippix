@@ -72,5 +72,4 @@ def lambda_handler(event, context):
 		print "Job completed."
 	cleanup(filelist, outfilename)
 
-# Note: This requires ffmpeg, packed in using the following lib
-# https://intoli.com/blog/transcoding-on-aws-lambda/
+# Note: This requires ffmpeg and imagemagick to be present. Therefore add these as layers to the Lambda before running this.
